@@ -1,20 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 interface ToastProps {
   message: string;
   visible: boolean;
 }
 
 export default function Toast({ message, visible }: ToastProps) {
-  const [show, setShow] = useState(visible);
-
-  useEffect(() => {
-    setShow(visible);
-  }, [visible]);
-
-  if (!show) return null;
+  if (!visible) return null;
 
   return (
     <div

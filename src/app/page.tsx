@@ -18,7 +18,7 @@ import ManageView from "@/components/Manage/ManageView";
 export default function HomePage() {
   const [currentView, setCurrentView] = useState<ViewType>("library");
   const [searchVisible, setSearchVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [, setSearchQuery] = useState("");
   const [toastMsg, setToastMsg] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
   const toastTimer = useRef<NodeJS.Timeout | null>(null);

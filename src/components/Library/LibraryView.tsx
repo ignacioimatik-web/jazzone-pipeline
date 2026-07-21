@@ -26,7 +26,6 @@ interface StatCard {
 }
 
 export default function LibraryView({
-  onPlay: _onPlay,
   onOpenAlbum,
   onStatsChange,
 }: LibraryViewProps) {

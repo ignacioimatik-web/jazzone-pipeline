@@ -9,7 +9,7 @@ import {
   clearJobs,
   cleanupStaleAlbums,
   rescanNavidrome,
-  getLogs,
+} from "@/lib/api";
 } from "@/lib/api";
 import PlaylistModal from "./PlaylistModal";
 
@@ -17,12 +17,6 @@ interface DownloadViewProps {
   onSwitchView: (view: ViewType) => void;
   onOpenLogs: () => void;
   showToast?: (msg: string) => void;
-}
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 const statusIcon: Record<Job["status"], string> = {

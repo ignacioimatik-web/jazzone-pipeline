@@ -20,11 +20,14 @@ export default function PlaylistModal({
   onClose,
   onConfirm,
 }: PlaylistModalProps) {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(
+    new Set(data ? data.entries.map((e) => e.id) : [])
+  );
 
   // Reset selection when data changes
   useEffect(() => {
     if (data) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedIds(new Set(data.entries.map((e) => e.id)));
     }
   }, [data]);
@@ -116,6 +119,7 @@ export default function PlaylistModal({
               {/* Thumbnail */}
               <div className="h-12 w-20 shrink-0 overflow-hidden rounded-lg bg-zinc-800">
                 {entry.thumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={entry.thumbnail}
                     alt={entry.title}
