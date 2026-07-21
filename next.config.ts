@@ -1,30 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "pipeline.jazzone.click",
-      },
-      {
-        protocol: "https",
-        hostname: "i.ytimg.com",
-      },
-      {
-        protocol: "https",
-        hostname: "img.youtube.com",
-      },
-    ],
-  },
-  // Allow connecting to the pipeline API
+  // Allow rewrites for API proxy
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL || "https://pipeline.jazzone.click"}/api/:path*`,
+        destination: `https://pipeline.jazzone.click/api/:path*`,
       },
     ];
+  },
+  // Disable image optimization for external URLs
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "pipeline.jazzone.click" },
+      { protocol: "https", hostname: "i.ytimg.com" },
+    ],
   },
 };
 
