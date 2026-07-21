@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import type { LibraryAlbum, LibraryFilter } from "@/lib/types";
+import type { LibraryAlbum, LibraryFilter, ViewType } from "@/lib/types";
 import { getLibrary } from "@/lib/api";
 import { getDownloadAllUrl } from "@/lib/api";
 import AlbumCard from "./AlbumCard";
@@ -14,7 +14,7 @@ interface LibraryViewProps {
   onStatsChange?: (stats: { total: number; tracks: number }) => void;
   searchQuery?: string;
   showToast?: (msg: string, duration?: number) => void;
-  onSwitchView?: (view: any) => void;
+  onSwitchView?: (view: ViewType) => void;
 }
 
 interface StatCard {
@@ -41,8 +41,10 @@ export default function LibraryView({
   const [error, setError] = useState<string | null>(null);
   const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
 
-  // Sync external search query
+  // Sync external search query — this effect is intentional to keep local
+  // state in sync with the parent's search query (used by SearchOverlay).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalSearch(searchQuery);
   }, [searchQuery]);
 
