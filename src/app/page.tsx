@@ -2,30 +2,45 @@
 
 import { useEffect, useRef } from "react";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const loadLibrary: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const updateStats: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const loadJobs: any;
+
 export default function HomePage() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load original HTML structure (without script tags)
+    let cancelled = false;
+
     fetch("/original.html")
       .then((r) => r.text())
       .then((html) => {
-        if (!ref.current) return;
-        // Extract only the body content, strip script tags (they won't execute via innerHTML)
+        if (cancelled || !ref.current) return;
         const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-        if (bodyMatch) {
-          let bodyContent = bodyMatch[1];
-          // Remove script tags from the content (we'll load jazzone.js separately)
-          bodyContent = bodyContent.replace(/<script[\s\S]*?<\/script>/gi, "");
-          ref.current.innerHTML = bodyContent;
-        }
+        if (!bodyMatch) return;
+        let bodyContent = bodyMatch[1];
+        bodyContent = bodyContent.replace(/<script[\s\S]*?<\/script>/gi, "");
+        ref.current.innerHTML = bodyContent;
 
-        // Load jazzone.js
+        // Load jazzone.js (DOMContentLoaded already fired, so init manually)
         const script = document.createElement("script");
         script.src = "/jazzone.js";
         script.async = false;
+        script.onload = () => {
+          if (typeof loadLibrary === "function") loadLibrary();
+          if (typeof updateStats === "function") updateStats();
+          if (typeof loadJobs === "function") loadJobs();
+          setInterval(() => {
+            if (typeof loadJobs === "function") loadJobs();
+          }, 30000);
+        };
         document.body.appendChild(script);
       });
+
+    return () => { cancelled = true; };
   }, []);
 
   return <div ref={ref} />;
