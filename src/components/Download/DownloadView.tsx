@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import type { ViewType } from "@/lib/types";
 import { startDownload } from "@/lib/api";
 
 interface DownloadViewProps {
-  onSwitchView: (view: string) => void;
+  onSwitchView: (view: ViewType) => void;
   onOpenLogs: () => void;
   showToast?: (msg: string) => void;
 }

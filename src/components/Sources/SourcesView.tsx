@@ -1,7 +1,9 @@
 "use client";
 
+import type { ViewType } from "@/lib/types";
+
 interface SourcesViewProps {
-  onSwitchView: (view: string) => void;
+  onSwitchView: (view: ViewType) => void;
 }
 
 export default function SourcesView({ onSwitchView }: SourcesViewProps) {
