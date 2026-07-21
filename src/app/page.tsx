@@ -18,7 +18,6 @@ import ManageView from "@/components/Manage/ManageView";
 export default function HomePage() {
   const [currentView, setCurrentView] = useState<ViewType>("library");
   const [searchVisible, setSearchVisible] = useState(false);
-  const [, setSearchQuery] = useState("");
   const [toastMsg, setToastMsg] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
   const toastTimer = useRef<NodeJS.Timeout | null>(null);
@@ -29,9 +28,6 @@ export default function HomePage() {
   const [playerVisible, setPlayerVisible] = useState(false);
 
   const [logViewerVisible, setLogViewerVisible] = useState(false);
-
-  // Global library search ref
-  const [librarySearchQuery, setLibrarySearchQuery] = useState("");
 
   const showToast = useCallback(
     (msg: string, duration = 3000) => {
@@ -50,11 +46,6 @@ export default function HomePage() {
 
   const handleToggleSearch = useCallback(() => {
     setSearchVisible((v) => !v);
-  }, []);
-
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-    setLibrarySearchQuery(query);
   }, []);
 
   const handlePlay = useCallback(
@@ -95,39 +86,27 @@ export default function HomePage() {
       {/* Search Overlay */}
       <SearchOverlay
         visible={searchVisible}
-        onSearch={handleSearch}
+        onSearch={() => {}}
         onClose={() => setSearchVisible(false)}
       />
 
       {/* Main Content */}
       <main className="pt-24 pb-32 px-4 md:px-12 max-w-[1440px] mx-auto">
         <ViewContainer activeView={currentView}>
-          {/* Library View */}
           <LibraryView
             onPlay={handlePlay}
-            onOpenAlbum={() => {}}
-            searchQuery={librarySearchQuery}
             showToast={showToast}
-            onSwitchView={handleSwitchView}
           />
-
-          {/* Download View */}
           <DownloadView
             onSwitchView={handleSwitchView}
             onOpenLogs={() => setLogViewerVisible(true)}
             showToast={showToast}
           />
-
-          {/* Import View */}
           <ImportView
             onSwitchView={handleSwitchView}
             showToast={showToast}
           />
-
-          {/* Sources View */}
           <SourcesView onSwitchView={handleSwitchView} />
-
-          {/* Manage View */}
           <ManageView
             onSwitchView={handleSwitchView}
             showToast={showToast}

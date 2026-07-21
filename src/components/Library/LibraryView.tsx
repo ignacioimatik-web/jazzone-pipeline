@@ -1,18 +1,20 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import type { LibraryAlbum, LibraryFilter, ViewType } from "@/lib/types";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import type { LibraryAlbum, LibraryFilter } from "@/lib/types";
 import { getLibrary } from "@/lib/api";
+import { getDownloadAllUrl } from "@/lib/api";
 import AlbumCard from "./AlbumCard";
+import AlbumModal from "./AlbumModal";
 import LibraryFilters from "./LibraryFilters";
 
 interface LibraryViewProps {
   onPlay: (album: string, track: string) => void;
-  onOpenAlbum: (name: string) => void;
+  onOpenAlbum?: (name: string) => void;
   onStatsChange?: (stats: { total: number; tracks: number }) => void;
   searchQuery?: string;
   showToast?: (msg: string, duration?: number) => void;
-  onSwitchView?: (view: ViewType) => void;
+  onSwitchView?: (view: any) => void;
 }
 
 interface StatCard {
@@ -26,19 +28,28 @@ interface StatCard {
 }
 
 export default function LibraryView({
-  onOpenAlbum,
+  onPlay,
+  onOpenAlbum: _onOpenAlbum,
   onStatsChange,
+  searchQuery = "",
+  showToast,
 }: LibraryViewProps) {
   const [albums, setAlbums] = useState<LibraryAlbum[]>([]);
   const [filter, setFilter] = useState<LibraryFilter>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [localSearch, setLocalSearch] = useState(searchQuery);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
+
+  // Sync external search query
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
 
   // Fetch albums on mount
   useEffect(() => {
     let cancelled = false;
-    async function fetch() {
+    async function fetchAlbums() {
       try {
         setLoading(true);
         setError(null);
@@ -54,8 +65,10 @@ export default function LibraryView({
         if (!cancelled) setLoading(false);
       }
     }
-    fetch();
-    return () => { cancelled = true; };
+    fetchAlbums();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Notify parent of stats
@@ -80,15 +93,51 @@ export default function LibraryView({
     }
 
     // Apply search query
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
+    if (localSearch.trim()) {
+      const q = localSearch.trim().toLowerCase();
       result = result.filter((album) =>
         album.name.toLowerCase().includes(q)
       );
     }
 
     return result;
-  }, [albums, filter, searchQuery]);
+  }, [albums, filter, localSearch]);
+
+  // Handle album click
+  const handleAlbumClick = useCallback((name: string) => {
+    setSelectedAlbum(name);
+  }, []);
+
+  // Handle download track
+  const handleDownload = useCallback((_album: string, _track: string) => {
+    const API = process.env.NEXT_PUBLIC_API_URL || "";
+    const a = document.createElement("a");
+    a.href = `${API}/api/library/${encodeURIComponent(_album)}/${encodeURIComponent(_track)}`;
+    a.download = _track;
+    a.click();
+    showToast?.("⬇️ Descargando...");
+  }, [showToast]);
+
+  // Handle download ZIP
+  const handleDownloadZip = useCallback((album: string) => {
+    const a = document.createElement("a");
+    a.href = getDownloadAllUrl(album);
+    a.download = `${album}.zip`;
+    a.click();
+    showToast?.("✅ Descargando ZIP...");
+  }, [showToast]);
+
+  // Handle delete
+  const handleDelete = useCallback(async (album: string) => {
+    try {
+      const { deleteAlbum } = await import("@/lib/api");
+      await deleteAlbum(album);
+      setAlbums((prev) => prev.filter((a) => a.name !== album));
+      showToast?.(`🗑️ "${album}" eliminado`);
+    } catch {
+      showToast?.("❌ Error al borrar");
+    }
+  }, [showToast]);
 
   // Stats cards data
   const statsCards: StatCard[] = [
@@ -156,8 +205,8 @@ export default function LibraryView({
         <input
           type="text"
           placeholder="Search albums..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
           className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] py-2.5 pl-10 pr-4 text-sm text-[#e5e2e1] placeholder-[#d4c0d7]/50 outline-none backdrop-blur-sm transition-colors focus:border-[#bc13fe]/40 focus:bg-[rgba(255,255,255,0.05)]"
         />
       </div>
@@ -180,7 +229,7 @@ export default function LibraryView({
         <div className="flex flex-col items-center py-20">
           <span className="mb-2 text-4xl">🎵</span>
           <p className="text-sm text-[#d4c0d7]">
-            {searchQuery || filter !== "all"
+            {localSearch || filter !== "all"
               ? "No albums match your search"
               : "No albums in your library yet"}
           </p>
@@ -191,11 +240,21 @@ export default function LibraryView({
             <AlbumCard
               key={album.name}
               album={album}
-              onClick={onOpenAlbum}
+              onClick={handleAlbumClick}
             />
           ))}
         </div>
       )}
+
+      {/* Album Modal */}
+      <AlbumModal
+        albumName={selectedAlbum}
+        onClose={() => setSelectedAlbum(null)}
+        onPlay={onPlay}
+        onDownload={handleDownload}
+        onDelete={handleDelete}
+        onDownloadZip={handleDownloadZip}
+      />
     </div>
   );
 }

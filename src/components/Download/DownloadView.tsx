@@ -10,7 +10,6 @@ import {
   cleanupStaleAlbums,
   rescanNavidrome,
 } from "@/lib/api";
-} from "@/lib/api";
 import PlaylistModal from "./PlaylistModal";
 
 interface DownloadViewProps {

@@ -17,7 +17,6 @@ interface ManageViewProps {
 }
 
 export default function ManageView({
-  onSwitchView: _onSwitchView,
   showToast,
 }: ManageViewProps) {
   const [albums, setAlbums] = useState<LibraryAlbum[]>([]);
