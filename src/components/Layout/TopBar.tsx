@@ -10,61 +10,51 @@ interface TopBarProps {
   onToggleSearch: () => void;
 }
 
-const viewLabels: Record<ViewType, string> = {
-  library: "Library",
-  download: "Download",
-  import: "Import",
-  sources: "Sources",
-  manage: "Manage",
-};
-
 export default function TopBar({
-  currentView,
+  currentView: _currentView,
   onSwitchView,
   onRescan,
   onOpenLogs,
   onToggleSearch,
 }: TopBarProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-zinc-800 bg-[#0A0A0A] px-4">
-      {/* Left: Logo + Title */}
-      <button
-        onClick={() => onSwitchView("library")}
-        className="flex items-center gap-2 text-white"
-      >
-        <span className="material-symbols-outlined text-2xl text-indigo-400">
-          library_music
-        </span>
-        <h1 className="text-lg font-semibold tracking-tight">JazzOne</h1>
-      </button>
-
-      {/* Center: Current view label */}
-      <span className="hidden text-sm font-medium text-zinc-400 sm:block">
-        {viewLabels[currentView]}
-      </span>
-
-      {/* Right: action buttons */}
-      <div className="flex items-center gap-1">
+    <header className="fixed top-0 w-full z-50 bg-[rgba(255,255,255,0.05)] backdrop-blur-xl border-b border-[rgba(255,255,255,0.12)] flex items-center justify-between px-4 md:px-12 h-16">
+      <div className="flex items-center gap-4">
         <button
-          onClick={onOpenLogs}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
-          aria-label="View logs"
+          onClick={() => onSwitchView("library")}
+          className="active:scale-95 transition-transform"
         >
-          <span className="material-symbols-outlined text-xl">terminal</span>
+          <span className="material-symbols-outlined text-[#ebb2ff]">menu</span>
         </button>
+        <h1
+          onClick={() => onSwitchView("library")}
+          className="text-[32px] font-black text-[#ebb2ff] cursor-pointer drop-shadow-[0_0_10px_rgba(188,19,254,0.6)] leading-none"
+          style={{ fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.2 }}
+        >
+          JazzOne
+        </h1>
+      </div>
+      <div className="flex items-center gap-4">
         <button
           onClick={onRescan}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
-          aria-label="Rescan library"
+          className="active:scale-95 transition-transform text-[#d4c0d7] hover:text-[#ebb2ff]"
+          title="Rescan Navidrome"
         >
-          <span className="material-symbols-outlined text-xl">refresh</span>
+          <span className="material-symbols-outlined">refresh</span>
+        </button>
+        <button
+          onClick={onOpenLogs}
+          className="active:scale-95 transition-transform text-[#d4c0d7] hover:text-[#ff4d4d]/80"
+          title="Ver logs"
+        >
+          <span className="material-symbols-outlined">bug_report</span>
         </button>
         <button
           onClick={onToggleSearch}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
-          aria-label="Toggle search"
+          className="active:scale-95 transition-transform text-[#d4c0d7] hover:text-[#ebb2ff]"
+          title="Search"
         >
-          <span className="material-symbols-outlined text-xl">search</span>
+          <span className="material-symbols-outlined">search</span>
         </button>
       </div>
     </header>

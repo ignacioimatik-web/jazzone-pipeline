@@ -14,45 +14,43 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { view: "library", label: "Library", icon: "album" },
-  { view: "download", label: "Download", icon: "download" },
-  { view: "import", label: "Import", icon: "upload_file" },
-  { view: "sources", label: "Sources", icon: "source" },
-  { view: "manage", label: "Manage", icon: "settings" },
+  { view: "library", label: "Biblioteca", icon: "library_music" },
+  { view: "download", label: "Descargar", icon: "download" },
+  { view: "sources", label: "Fuentes", icon: "explore" },
+  { view: "import", label: "Importar", icon: "folder_open" },
+  { view: "manage", label: "Gestionar", icon: "build" },
 ];
 
-export default function BottomNav({
-  currentView,
-  onSwitchView,
-}: BottomNavProps) {
+export default function BottomNav({ currentView, onSwitchView }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-800 bg-[#0A0A0A]">
-      <ul className="mx-auto flex max-w-lg items-center justify-around">
-        {navItems.map((item) => {
-          const isActive = currentView === item.view;
-          return (
-            <li key={item.view}>
-              <button
-                onClick={() => onSwitchView(item.view)}
-                className={`flex flex-col items-center gap-0.5 px-3 py-2 text-xs transition-colors ${
-                  isActive
-                    ? "text-indigo-400"
-                    : "text-zinc-500 hover:text-zinc-300"
-                }`}
-              >
-                <span
-                  className={`material-symbols-outlined text-2xl ${
-                    isActive ? "fill-1" : ""
-                  }`}
-                >
-                  {item.icon}
-                </span>
-                <span className="text-[10px] leading-tight">{item.label}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+    <nav className="fixed bottom-0 w-full z-50 bg-[rgba(255,255,255,0.05)] backdrop-blur-2xl border-t border-[rgba(255,255,255,0.12)] shadow-[0_-4px_20px_rgba(0,0,0,0.5)] flex justify-around items-center h-20 px-4">
+      {navItems.map((item) => {
+        const isActive = currentView === item.view;
+        return (
+          <button
+            key={item.view}
+            onClick={() => onSwitchView(item.view)}
+            className={`flex flex-col items-center justify-center active:scale-90 duration-200 ${
+              isActive
+                ? "text-[#ebb2ff] drop-shadow-[0_0_8px_rgba(188,19,254,0.8)]"
+                : "text-[#d4c0d7] opacity-60 hover:opacity-100 transition-opacity"
+            }`}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+            >
+              {item.icon}
+            </span>
+            <span
+              className="text-[12px] font-bold mt-1 uppercase tracking-wider"
+              style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}
+            >
+              {item.label}
+            </span>
+          </button>
+        );
+      })}
     </nav>
   );
 }

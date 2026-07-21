@@ -1,142 +1,112 @@
 "use client";
 
-import type { ViewType } from "@/lib/types";
-
 interface SourcesViewProps {
-  onSwitchView: (view: ViewType) => void;
-}
-
-interface SourceCard {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-  action: () => void;
-  color: string;
+  onSwitchView: (view: string) => void;
 }
 
 export default function SourcesView({ onSwitchView }: SourcesViewProps) {
-  const sourceCards: SourceCard[] = [
-    {
-      id: "youtube",
-      icon: "smart_display",
-      title: "YouTube / YouTube Music",
-      description:
-        "Descarga desde cualquier enlace de YouTube o YouTube Music. Soporta listas de reproducción, álbumes completos y videos individuales.",
-      action: () => onSwitchView("download"),
-      color: "text-red-400 bg-red-600/10",
-    },
-    {
-      id: "soundcloud",
-      icon: "audiotrack",
-      title: "SoundCloud",
-      description:
-        "Importa pistas y playlists desde SoundCloud. Incluye metadatos y artwork cuando están disponibles.",
-      action: () => onSwitchView("download"),
-      color: "text-orange-400 bg-orange-600/10",
-    },
-    {
-      id: "bandcamp",
-      icon: "music_note",
-      title: "Bandcamp",
-      description:
-        "Descarga música comprada en Bandcamp. Soporta álbumes completos con todas las pistas y artwork.",
-      action: () => onSwitchView("download"),
-      color: "text-cyan-400 bg-cyan-600/10",
-    },
-    {
-      id: "direct-url",
-      icon: "link",
-      title: "URL Directa",
-      description:
-        "Descarga desde URLs directas de archivos de audio. Compatible con MP3, FLAC, M4A, OGG y más.",
-      action: () => onSwitchView("download"),
-      color: "text-indigo-400 bg-indigo-600/10",
-    },
-    {
-      id: "upload",
-      icon: "upload_file",
-      title: "Subir Archivos",
-      description:
-        "Importa música directamente desde tu Mac. Arrastra archivos o carpetas completas con estructura de álbumes.",
-      action: () => onSwitchView("import"),
-      color: "text-emerald-400 bg-emerald-600/10",
-    },
-    {
-      id: "nas",
-      icon: "folder",
-      title: "NAS / Synology",
-      description:
-        "Explora archivos de música desde tu NAS Synology o servidor de red local. Selecciona carpetas para importar.",
-      action: () => onSwitchView("import"),
-      color: "text-violet-400 bg-violet-600/10",
-    },
-  ];
-
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-800/50 bg-gradient-to-br from-zinc-900 to-zinc-900/60 px-6 py-8 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-600/20">
-          <span className="material-symbols-outlined text-3xl text-amber-400">
-            source
-          </span>
-        </div>
-        <h2 className="text-2xl font-bold text-white">Fuentes de Música</h2>
-        <p className="max-w-md text-sm text-zinc-400">
-          Elige cómo quieres importar música a tu biblioteca. Soporte para
-          múltiples fuentes y formatos.
+    <div className="max-w-2xl mx-auto">
+      <div className="text-center mb-8">
+        <span className="material-symbols-outlined text-6xl text-[#ebb2ff] mb-4" style={{ fontSize: "64px" }}>explore</span>
+        <h2 className="text-[40px] font-bold text-[#e5e2e1] mb-2 leading-tight" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          Fuentes de Audio
+        </h2>
+        <p className="text-[14px] text-[#d4c0d7]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          Elige de dónde quieres añadir música
         </p>
       </div>
 
-      {/* Source Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {sourceCards.map((card) => (
-          <button
-            key={card.id}
-            onClick={card.action}
-            className="group flex flex-col items-start gap-3 rounded-2xl border border-zinc-800/50 bg-zinc-900/30 p-5 text-left backdrop-blur-sm transition-all hover:border-zinc-700 hover:bg-zinc-800/50 hover:shadow-lg hover:shadow-zinc-900/50"
-          >
-            <div
-              className={`flex h-12 w-12 items-center justify-center rounded-xl ${card.color}`}
-            >
-              <span className="material-symbols-outlined text-2xl">
-                {card.icon}
-              </span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* YouTube */}
+        <div className="glass-card p-5 rounded-2xl transition-all cursor-default">
+          <div className="flex items-start gap-4 mb-3">
+            <span className="material-symbols-outlined text-4xl text-red-400" style={{ fontSize: "40px", fontVariationSettings: "'FILL' 1" }}>play_circle</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-[18px] font-semibold text-[#e5e2e1]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>YouTube</h3>
+              <p className="text-[14px] text-[#d4c0d7] mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Videos, listas y mixes. Con selección previa de tracks y detección automática de artista.</p>
             </div>
-            <div>
-              <h3 className="text-sm font-semibold text-white transition-colors group-hover:text-indigo-300">
-                {card.title}
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-                {card.description}
-              </p>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => window.open('https://youtube.com','_blank')} className="flex-1 px-3 py-2 rounded-lg bg-[#bc13fe]/20 text-[#bc13fe] text-[12px] font-bold uppercase tracking-wider hover:bg-[#bc13fe]/30 transition-colors" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}>Abrir YouTube</button>
+            <button onClick={() => onSwitchView("download")} className="flex-1 px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] text-[#d4c0d7] text-[12px] hover:text-[#ebb2ff] transition-colors" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}>Ir a Descargar</button>
+          </div>
+        </div>
+
+        {/* SoundCloud */}
+        <div className="glass-card p-5 rounded-2xl transition-all cursor-default">
+          <div className="flex items-start gap-4 mb-3">
+            <span className="material-symbols-outlined text-4xl text-orange-400" style={{ fontSize: "40px", fontVariationSettings: "'FILL' 1" }}>audiotrack</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-[18px] font-semibold text-[#e5e2e1]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>SoundCloud</h3>
+              <p className="text-[14px] text-[#d4c0d7] mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Enlaces a tracks y sets. Se pegan en Descargar, el pipeline extrae el audio.</p>
             </div>
-            <div className="mt-auto flex items-center gap-1 text-xs font-medium text-zinc-600 transition-colors group-hover:text-indigo-400">
-              <span>Ir a {card.id === "upload" || card.id === "nas" ? "Import" : "Download"}</span>
-              <span className="material-symbols-outlined text-sm">
-                arrow_forward
-              </span>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => window.open('https://soundcloud.com','_blank')} className="flex-1 px-3 py-2 rounded-lg bg-orange-400/10 text-orange-400 text-[12px] font-bold uppercase tracking-wider hover:bg-orange-400/20 transition-colors" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}>Abrir SoundCloud</button>
+            <button onClick={() => onSwitchView("download")} className="flex-1 px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] text-[#d4c0d7] text-[12px] hover:text-[#ebb2ff] transition-colors" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}>Ir a Descargar</button>
+          </div>
+        </div>
+
+        {/* Bandcamp */}
+        <div className="glass-card p-5 rounded-2xl transition-all cursor-default">
+          <div className="flex items-start gap-4 mb-3">
+            <span className="material-symbols-outlined text-4xl text-green-400" style={{ fontSize: "40px", fontVariationSettings: "'FILL' 1" }}>music_note</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-[18px] font-semibold text-[#e5e2e1]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Bandcamp</h3>
+              <p className="text-[14px] text-[#d4c0d7] mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Álbumes y tracks individuales. Pega el enlace en Descargar.</p>
             </div>
-          </button>
-        ))}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => window.open('https://bandcamp.com','_blank')} className="flex-1 px-3 py-2 rounded-lg bg-green-400/10 text-green-400 text-[12px] font-bold uppercase tracking-wider hover:bg-green-400/20 transition-colors" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}>Abrir Bandcamp</button>
+            <button onClick={() => onSwitchView("download")} className="flex-1 px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] text-[#d4c0d7] text-[12px] hover:text-[#ebb2ff] transition-colors" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}>Ir a Descargar</button>
+          </div>
+        </div>
+
+        {/* URL Directa */}
+        <div className="glass-card p-5 rounded-2xl transition-all cursor-default">
+          <div className="flex items-start gap-4 mb-3">
+            <span className="material-symbols-outlined text-4xl text-blue-400" style={{ fontSize: "40px" }}>link</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-[18px] font-semibold text-[#e5e2e1]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>URL Directa</h3>
+              <p className="text-[14px] text-[#d4c0d7] mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Enlace directo a MP3, M4A, FLAC. Pégalo en Descargar para importarlo.</p>
+            </div>
+          </div>
+          <button onClick={() => onSwitchView("download")} className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] text-[#d4c0d7] text-[12px] hover:text-[#ebb2ff] transition-colors" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}>Ir a Descargar</button>
+        </div>
+
+        {/* Subir archivos */}
+        <div className="glass-card p-5 rounded-2xl transition-all cursor-default">
+          <div className="flex items-start gap-4 mb-3">
+            <span className="material-symbols-outlined text-4xl text-[#00f1fe]" style={{ fontSize: "40px", fontVariationSettings: "'FILL' 1" }}>cloud_upload</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-[18px] font-semibold text-[#e5e2e1]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Subir archivos</h3>
+              <p className="text-[14px] text-[#d4c0d7] mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Arrastra carpetas o archivos de música desde tu Mac. Se importan automáticamente a Navidrome.</p>
+            </div>
+          </div>
+          <button onClick={() => onSwitchView("import")} className="w-full px-3 py-2 rounded-lg bg-[#00f1fe]/10 text-[#00f1fe] text-[12px] font-bold uppercase tracking-wider hover:bg-[#00f1fe]/20 transition-colors" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}>Ir a Importar</button>
+        </div>
+
+        {/* NAS / Synology */}
+        <div className="glass-card p-5 rounded-2xl transition-all cursor-default">
+          <div className="flex items-start gap-4 mb-3">
+            <span className="material-symbols-outlined text-4xl text-[#c6c6c7]" style={{ fontSize: "40px" }}>folder</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-[18px] font-semibold text-[#e5e2e1]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>NAS / Synology</h3>
+              <p className="text-[14px] text-[#d4c0d7] mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Explora las carpetas del NAS, discos USB y externos. Importa música directamente desde el servidor.</p>
+            </div>
+          </div>
+          <button onClick={() => onSwitchView("import")} className="w-full px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] text-[#d4c0d7] text-[12px] hover:text-[#ebb2ff] transition-colors" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}>Ir a Importar</button>
+        </div>
       </div>
 
-      {/* Informational Footer */}
-      <div className="rounded-xl border border-zinc-800/50 bg-zinc-900/20 px-5 py-4 backdrop-blur-sm">
-        <div className="flex items-start gap-3">
-          <span className="material-symbols-outlined mt-0.5 text-base text-zinc-500">
-            lightbulb
-          </span>
-          <div className="text-xs text-zinc-500 leading-relaxed">
-            <p className="font-medium text-zinc-400 mb-1">¿No encuentras tu fuente?</p>
-            <p>
-              La opción <strong className="text-zinc-300">Subir Archivos</strong> te permite
-              importar música desde cualquier ubicación de tu Mac. También
-              puedes explorar carpetas de red si tu NAS está montado en el
-              sistema de archivos.
-            </p>
-          </div>
+      {/* Tip footer */}
+      <div className="glass-card p-5 rounded-2xl mt-6">
+        <div className="flex items-center gap-3">
+          <span className="material-symbols-outlined text-[#bc13fe]">lightbulb</span>
+          <p className="text-[14px] text-[#d4c0d7]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            Todos los enlaces se pegan en la pestaña <strong>Descargar</strong>. El pipeline soporta yt-dlp, lo que permite extraer audio de cientos de sitios web.
+          </p>
         </div>
       </div>
     </div>

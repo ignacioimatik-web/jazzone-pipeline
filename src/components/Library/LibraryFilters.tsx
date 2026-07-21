@@ -7,32 +7,30 @@ interface LibraryFiltersProps {
   onFilterChange: (filter: LibraryFilter) => void;
 }
 
-const filters: { key: LibraryFilter; label: string }[] = [
-  { key: "all", label: "All Music" },
-  { key: "acid-jazz", label: "Acid Jazz" },
-  { key: "concerts", label: "Concerts" },
-  { key: "instrumental", label: "Instrumental" },
+const filters: { value: LibraryFilter; label: string }[] = [
+  { value: "all", label: "All Music" },
+  { value: "acid-jazz", label: "Acid Jazz" },
+  { value: "concerts", label: "Concerts" },
+  { value: "instrumental", label: "Instrumental" },
 ];
 
-export default function LibraryFilters({
-  currentFilter,
-  onFilterChange,
-}: LibraryFiltersProps) {
+export default function LibraryFilters({ currentFilter, onFilterChange }: LibraryFiltersProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-      {filters.map(({ key, label }) => {
-        const isActive = currentFilter === key;
+    <div className="flex gap-4 overflow-x-auto w-full no-scrollbar" role="group" aria-label="Library filters">
+      {filters.map((f) => {
+        const isActive = currentFilter === f.value;
         return (
           <button
-            key={key}
-            onClick={() => onFilterChange(key)}
-            className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
+            key={f.value}
+            onClick={() => onFilterChange(f.value)}
+            className={`px-5 py-2 rounded-full font-bold text-[12px] uppercase tracking-wider whitespace-nowrap transition-all ${
               isActive
                 ? "bg-[#bc13fe] text-white shadow-[0_0_12px_-2px_rgba(188,19,254,0.4)]"
-                : "border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] text-[#d4c0d7] hover:border-[rgba(255,255,255,0.15)] hover:text-[#e5e2e1]"
+                : "bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] text-[#d4c0d7] hover:bg-[rgba(255,255,255,0.07)]"
             }`}
+            style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em" }}
           >
-            {label}
+            {f.label}
           </button>
         );
       })}
