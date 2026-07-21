@@ -1,12 +1,56 @@
-"use client";
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JazzOne - Curated Library</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {"primary-fixed-dim":"#ebb2ff","secondary":"#ddfcff","on-primary-fixed":"#320047","primary-container":"#bc13fe","tertiary":"#c6c6c7","surface-glass":"rgba(255,255,255,0.05)","surface-container":"#201f1f","surface-container-high":"#2a2a2a","on-tertiary-container":"#040506","outline":"#9d8ba0","on-primary-fixed-variant":"#74009f","error-container":"#93000a","background":"#131313","on-secondary-fixed":"#002022","on-tertiary-fixed":"#1a1c1c","on-surface":"#e5e2e1","inverse-on-surface":"#313030","on-secondary-fixed-variant":"#004f54","error":"#ffb4ab","secondary-fixed-dim":"#00dbe7","surface-variant":"#353534","on-error-container":"#ffdad6","primary":"#ebb2ff","tertiary-fixed-dim":"#c6c6c7","secondary-container":"#00f1fe","primary-fixed":"#f8d8ff","on-error":"#690005","neon-purple-glow":"rgba(188,19,254,0.4)","surface-container-lowest":"#0e0e0e","neon-teal-glow":"rgba(0,242,255,0.3)","surface-container-highest":"#353534","on-primary":"#520072","surface-bright":"#3a3939","secondary-fixed":"#74f5ff","inverse-primary":"#9800d0","outline-variant":"#504254","on-tertiary":"#2f3131","on-secondary-container":"#006a70","surface-container-low":"#1c1b1b","on-primary-container":"#ffffff","inverse-surface":"#e5e2e1","on-surface-variant":"#d4c0d7","on-background":"#e5e2e1","tertiary-fixed":"#e2e2e2","surface-tint":"#ebb2ff","tertiary-container":"#767777","surface":"#131313","on-tertiary-fixed-variant":"#454747","border-glass":"rgba(255,255,255,0.12)","surface-dim":"#131313","on-secondary":"#00363a"},
+      borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},
+      spacing:{"stack-sm":"8px","stack-md":"16px","gutter":"24px","margin-mobile":"16px","container-max":"1440px","margin-desktop":"48px","stack-lg":"32px"},
+      fontFamily:{"label-caps":["JetBrains Mono","monospace"],"body-sm":["JetBrains Mono","monospace"],"title-md":["JetBrains Mono","monospace"],"headline-lg":["JetBrains Mono","monospace"],"headline-lg-mobile":["JetBrains Mono","monospace"],"display-lg":["JetBrains Mono","monospace"],"headline-xl":["JetBrains Mono","monospace"],"body-lg":["JetBrains Mono","monospace"]},
+      fontSize:{"label-caps":["12px",{lineHeight:"1",letterSpacing:"0.1em",fontWeight:"700"}],"body-sm":["14px",{lineHeight:"1.6",fontWeight:"400"}],"title-md":["18px",{lineHeight:"1.5",fontWeight:"600"}],"headline-lg":["32px",{lineHeight:"1.2",fontWeight:"700"}],"headline-lg-mobile":["28px",{lineHeight:"1.2",fontWeight:"700"}],"display-lg":["56px",{lineHeight:"1.1",letterSpacing:"-0.02em",fontWeight:"900"}],"headline-xl":["40px",{lineHeight:"1.2",fontWeight:"700"}],"body-lg":["16px",{lineHeight:"1.6",fontWeight:"400"}]}
+    }
+  }
+}
+</script>
+<style>
+body { background-color:#0A0A0A; color:#e5e2e1; min-height:100dvh; }
+.material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+.glass-card { background:rgba(255,255,255,0.03); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.08); transition:all 0.4s cubic-bezier(0.4,0,0.2,1); }
+.glass-card:hover { background:rgba(255,255,255,0.07); border-color:rgba(188,19,254,0.4); transform:translateY(-8px); box-shadow:0 10px 40px -10px rgba(188,19,254,0.3); }
+.neon-glow-text { text-shadow:0 0 15px rgba(188,19,254,0.6); }
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:#0A0A0A; }
+::-webkit-scrollbar-thumb { background:#353534; border-radius:10px; }
+::-webkit-scrollbar-thumb:hover { background:#ebb2ff; }
+.neon-active { color:var(--primary); text-shadow:0 0 8px rgba(188,19,254,0.6); }
+.view-section { display:none; }
+.view-section.active { display:block; }
+.progress-bar { height:4px; background:rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; }
+.progress-fill { height:100%; background:linear-gradient(90deg,#00f1fe,#bc13fe); border-radius:10px; transition:width 0.5s ease; }
+.track-chip { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:6px 10px; font-size:12px; font-weight:500; margin:3px; }
+.toast { position:fixed; top:90px; left:50%; transform:translateX(-50%) translateY(-10px); background:rgba(28,27,27,0.95); backdrop-filter:blur(25px); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:12px 20px; font-size:14px; font-weight:500; z-index:300; opacity:0; transition:all 0.35s ease; pointer-events:none; max-width:88%; text-align:center; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.spinner { width:24px; height:24px; border:3px solid rgba(255,255,255,0.08); border-top-color:#bc13fe; border-radius:50%; animation:spin 0.8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+/* New styles for v1.2 */
+.download-hero-icon { font-size:64px; background:linear-gradient(135deg,#bc13fe,#00f1fe); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.tool-btn { display:flex; align-items:center; gap:10px; padding:14px 20px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); transition:all 0.3s ease; cursor:pointer; width:100%; text-align:left; font-size:14px; }
+.tool-btn:hover { background:rgba(255,255,255,0.07); border-color:rgba(188,19,254,0.4); transform:translateX(4px); }
+.tool-btn.danger:hover { border-color:#ff4d4d; }
+</style>
+</head>
+<body class="font-body-lg text-body-lg selection:bg-primary selection:text-on-primary" style="font-family:'JetBrains Mono',monospace">
 
-export default function HomePage() {
-  return (
-    <div
-      className="font-body-lg text-body-lg selection:bg-primary selection:text-on-primary"
-      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-      dangerouslySetInnerHTML={{
-        __html: `
+<!-- Top App Bar -->
 <header class="fixed top-0 w-full z-50 bg-surface-glass backdrop-blur-xl border-b border-border-glass flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16">
   <div class="flex items-center gap-stack-md">
     <button class="active:scale-95 transition-transform text-primary" onclick="switchView('library')">
@@ -15,7 +59,7 @@ export default function HomePage() {
     <h1 class="font-headline-lg text-headline-lg font-black text-primary drop-shadow-[0_0_10px_rgba(188,19,254,0.6)] cursor-pointer" onclick="switchView('library')">JazzOne</h1>
   </div>
   <div class="flex items-center gap-stack-md">
-    <button class="active:scale-95 transition-transform text-on-surface-variant hover:text-primary" onclick="rescanNavidrome()" title="Rescan Navidrome">
+    <button class="active:scale-95 transition-transform text-on-surface-variant hover:text-primary" onclick="rescanNavidrome()">
       <span class="material-symbols-outlined">refresh</span>
     </button>
     <button class="active:scale-95 transition-transform text-on-surface-variant hover:text-error/80" onclick="openLogs()" title="Ver logs">
@@ -36,6 +80,7 @@ export default function HomePage() {
 </div>
 
 <main class="pt-24 pb-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+
   <!-- View: Library -->
   <div class="view-section active" id="view-library">
     <section class="mb-stack-md flex flex-col gap-3">
@@ -69,6 +114,7 @@ export default function HomePage() {
         <button class="library-filter px-5 py-2 rounded-full bg-surface-glass border border-border-glass text-on-surface-variant font-label-caps text-label-caps whitespace-nowrap hover:bg-surface-variant transition-colors" data-filter="instrumental" onclick="setLibraryFilter('instrumental', this)">Instrumental</button>
       </div>
     </section>
+
     <section>
       <div class="flex items-center justify-between mb-stack-md">
         <h2 class="font-headline-xl text-headline-xl text-on-surface">Biblioteca</h2>
@@ -88,6 +134,7 @@ export default function HomePage() {
         </div>
       </div>
     </section>
+
     <section class="mt-stack-lg grid grid-cols-1 md:grid-cols-3 gap-gutter">
       <div class="glass-card p-stack-lg rounded-xl flex flex-col justify-center border-l-4 border-l-primary">
         <span class="font-label-caps text-label-caps text-primary uppercase mb-2">Total Collection</span>
@@ -110,9 +157,10 @@ export default function HomePage() {
     </section>
   </div>
 
-  <!-- View: Download -->
+  <!-- View: Download (REDESIGNED) -->
   <div class="view-section" id="view-download">
     <div class="max-w-2xl mx-auto">
+      <!-- Hero card -->
       <div class="text-center mb-8">
         <div class="download-hero-icon mb-4">
           <span class="material-symbols-outlined" style="font-size:72px;background:linear-gradient(135deg,#bc13fe,#00f1fe);-webkit-background-clip:text;-webkit-text-fill-color:transparent">download</span>
@@ -120,6 +168,8 @@ export default function HomePage() {
         <h2 class="font-headline-xl text-headline-xl text-on-surface mb-2">Descargar Música</h2>
         <p class="text-body-sm text-on-surface-variant">Pega un enlace de YouTube — video individual o lista de reproducción</p>
       </div>
+
+      <!-- URL input card -->
       <div class="glass-card p-6 md:p-8 rounded-2xl mb-6">
         <div class="relative w-full mb-4">
           <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">link</span>
@@ -131,6 +181,8 @@ export default function HomePage() {
         </button>
         <p class="text-[10px] text-on-surface-variant/50 text-center mt-3">Los tracks de listas se agrupan en un solo álbum · Las playlists muestran selección previa</p>
       </div>
+
+      <!-- Progress section -->
       <div class="hidden glass-card p-6 rounded-2xl mb-6" id="progressSection">
         <div class="flex items-center gap-3 mb-4">
           <div class="spinner" style="width:20px;height:20px;border-width:2px"></div>
@@ -139,18 +191,34 @@ export default function HomePage() {
         <div class="progress-bar mb-3"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
         <div class="flex flex-wrap gap-2 mt-3" id="tracksPreview"></div>
       </div>
+
+      <!-- Quick actions -->
       <div class="glass-card p-5 rounded-2xl">
         <div class="flex items-center gap-2 mb-4">
           <span class="material-symbols-outlined text-sm text-on-surface-variant">build</span>
           <span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Acciones rápidas</span>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button class="tool-btn justify-center" onclick="cleanupStale()"><span class="material-symbols-outlined text-primary-container">cleaning_services</span><span>Limpiar Fantasmas</span></button>
-          <button class="tool-btn justify-center" onclick="rescanNavidrome()"><span class="material-symbols-outlined text-secondary-container">refresh</span><span>Rescan Navidrome</span></button>
-          <button class="tool-btn justify-center" onclick="openLogs()"><span class="material-symbols-outlined text-yellow-400">bug_report</span><span>Ver Logs</span></button>
-          <button class="tool-btn justify-center danger" onclick="openManageCleanup()"><span class="material-symbols-outlined text-red-400">delete</span><span>Borrar Álbumes</span></button>
+          <button class="tool-btn justify-center" onclick="cleanupStale()">
+            <span class="material-symbols-outlined text-primary-container">cleaning_services</span>
+            <span>Limpiar Fantasmas</span>
+          </button>
+          <button class="tool-btn justify-center" onclick="rescanNavidrome()">
+            <span class="material-symbols-outlined text-secondary-container">refresh</span>
+            <span>Rescan Navidrome</span>
+          </button>
+          <button class="tool-btn justify-center" onclick="openLogs()">
+            <span class="material-symbols-outlined text-yellow-400">bug_report</span>
+            <span>Ver Logs</span>
+          </button>
+          <button class="tool-btn justify-center danger" onclick="openManageCleanup()">
+            <span class="material-symbols-outlined text-red-400">delete</span>
+            <span>Borrar Álbumes</span>
+          </button>
         </div>
       </div>
+
+      <!-- Jobs section inside Download -->
       <div class="glass-card p-5 rounded-2xl mt-6">
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
@@ -158,8 +226,12 @@ export default function HomePage() {
             <span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Procesos</span>
           </div>
           <div class="flex items-center gap-2">
-            <button class="text-body-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" onclick="loadJobs()"><span class="material-symbols-outlined" style="font-size:16px">refresh</span></button>
-            <button class="text-body-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1" onclick="clearJobs()"><span class="material-symbols-outlined" style="font-size:16px">clear_all</span> Limpiar</button>
+            <button class="text-body-sm text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" onclick="loadJobs()">
+              <span class="material-symbols-outlined" style="font-size:16px">refresh</span>
+            </button>
+            <button class="text-body-sm text-on-surface-variant hover:text-error transition-colors flex items-center gap-1" onclick="clearJobs()">
+              <span class="material-symbols-outlined" style="font-size:16px">clear_all</span> Limpiar
+            </button>
           </div>
         </div>
         <div class="space-y-2 max-h-32 overflow-y-auto" id="jobsList">
@@ -175,18 +247,18 @@ export default function HomePage() {
   <!-- View: Import -->
   <div class="view-section" id="view-import">
     <div class="flex items-center justify-between mb-stack-lg">
-      <h2 class="font-headline-xl text-headline-xl text-on-surface">Importar ï¿½lbumes</h2>
+      <h2 class="font-headline-xl text-headline-xl text-on-surface">Importar Álbumes</h2>
     </div>
     <div class="max-w-2xl mx-auto">
       <div class="glass-card p-stack-lg rounded-xl border-2 border-dashed border-border-glass hover:border-primary/40 transition-colors cursor-pointer" id="dropZone" ondragover="event.preventDefault(); this.classList.add('border-primary', 'bg-surface-glass')" ondragleave="this.classList.remove('border-primary', 'bg-surface-glass')" ondrop="handleDrop(event)" onclick="document.getElementById('fileInput').click()">
         <div class="flex flex-col items-center gap-3 py-8 text-center" id="dropZoneContent">
           <span class="material-symbols-outlined text-5xl text-on-surface-variant">cloud_upload</span>
           <p class="font-headline-lg text-headline-lg text-on-surface">Subir desde tu Mac</p>
-          <p class="text-body-sm text-on-surface-variant max-w-md">Arrastra una carpeta de mï¿½sica desde el Finder<br>o haz clic para seleccionarla</p>
-          <span class="text-[10px] text-on-surface-variant bg-surface-glass px-3 py-1 rounded-full">mp3 ôñ flac ôñ m4a ôñ ogg ôñ wav ôñ wma ôñ aac ôñ opus</span>
+          <p class="text-body-sm text-on-surface-variant max-w-md">Arrastra una carpeta de música desde el Finder<br>o haz clic para seleccionarla</p>
+          <span class="text-[10px] text-on-surface-variant bg-surface-glass px-3 py-1 rounded-full">mp3 · flac · m4a · ogg · wav · wma · aac · opus</span>
           <div class="flex items-center gap-2 text-xs text-on-surface-variant mt-2">
             <span class="material-symbols-outlined" style="font-size:14px">info</span>
-            El pipeline lee los metadatos, organiza por Artista/ï¿½lbum y los aûÝade a Navidrome
+            El pipeline lee los metadatos, organiza por Artista/Álbum y los añade a Navidrome
           </div>
         </div>
         <input type="file" id="fileInput" class="hidden" webkitdirectory multiple accept=".mp3,.m4a,.flac,.ogg,.wav,.wma,.aac,.opus" onchange="handleFileSelect(event)">
@@ -205,7 +277,7 @@ export default function HomePage() {
           <div class="flex items-center gap-3">
             <span class="material-symbols-outlined text-2xl text-green-400" id="resultIcon">check_circle</span>
             <div>
-              <p class="font-title-md text-title-md text-on-surface" id="resultTitle">Importaciï¿½n completa</p>
+              <p class="font-title-md text-title-md text-on-surface" id="resultTitle">Importación completa</p>
               <p class="text-body-sm text-on-surface-variant" id="resultDetail"></p>
             </div>
           </div>
@@ -215,21 +287,22 @@ export default function HomePage() {
     </div>
   </div>
 
-  <!-- View: Sources -->
+  <!-- View: Fuentes -->
   <div class="view-section" id="view-sources">
     <div class="max-w-2xl mx-auto">
       <div class="text-center mb-8">
         <span class="material-symbols-outlined text-6xl text-primary mb-4" style="font-size:64px">explore</span>
         <h2 class="font-headline-xl text-headline-xl text-on-surface mb-2">Fuentes de Audio</h2>
-        <p class="text-body-sm text-on-surface-variant">Elige de dï¿½nde quieres aûÝadir mï¿½sica</p>
+        <p class="text-body-sm text-on-surface-variant">Elige de dónde quieres añadir música</p>
       </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="glass-card p-5 rounded-2xl hover:border-primary/50 transition-all">
           <div class="flex items-start gap-4 mb-3">
             <span class="material-symbols-outlined text-4xl text-red-400" style="font-size:40px;font-variation-settings:'FILL' 1">play_circle</span>
             <div class="flex-1 min-w-0">
               <h3 class="font-title-md text-title-md text-on-surface">YouTube</h3>
-              <p class="text-body-sm text-on-surface-variant mt-1">Videos, listas y mixes. Con selecciï¿½n previa de tracks y detecciï¿½n automï¿½tica de artista.</p>
+              <p class="text-body-sm text-on-surface-variant mt-1">Videos, listas y mixes. Con selección previa de tracks y detección automática de artista.</p>
             </div>
           </div>
           <div class="flex gap-2">
@@ -237,52 +310,73 @@ export default function HomePage() {
             <button class="flex-1 px-3 py-2 rounded-lg bg-surface-glass text-on-surface-variant text-xs hover:text-primary transition-colors" onclick="switchView('download')">Ir a Descargar</button>
           </div>
         </div>
+
         <div class="glass-card p-5 rounded-2xl hover:border-primary/50 transition-all">
           <div class="flex items-start gap-4 mb-3">
             <span class="material-symbols-outlined text-4xl text-orange-400" style="font-size:40px;font-variation-settings:'FILL' 1">audiotrack</span>
-            <div class="flex-1 min-w-0"><h3 class="font-title-md text-title-md text-on-surface">SoundCloud</h3><p class="text-body-sm text-on-surface-variant mt-1">Enlaces a tracks y sets. Se pegan en Descargar, el pipeline extrae el audio.</p></div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-title-md text-title-md text-on-surface">SoundCloud</h3>
+              <p class="text-body-sm text-on-surface-variant mt-1">Enlaces a tracks y sets. Se pegan en Descargar, el pipeline extrae el audio.</p>
+            </div>
           </div>
           <div class="flex gap-2">
             <button class="flex-1 px-3 py-2 rounded-lg bg-orange-400/10 text-orange-400 text-xs font-semibold hover:bg-orange-400/20 transition-colors" onclick="window.open('https://soundcloud.com','_blank')">Abrir SoundCloud</button>
             <button class="flex-1 px-3 py-2 rounded-lg bg-surface-glass text-on-surface-variant text-xs hover:text-primary transition-colors" onclick="switchView('download')">Ir a Descargar</button>
           </div>
         </div>
+
         <div class="glass-card p-5 rounded-2xl hover:border-primary/50 transition-all">
           <div class="flex items-start gap-4 mb-3">
             <span class="material-symbols-outlined text-4xl text-green-400" style="font-size:40px;font-variation-settings:'FILL' 1">music_note</span>
-            <div class="flex-1 min-w-0"><h3 class="font-title-md text-title-md text-on-surface">Bandcamp</h3><p class="text-body-sm text-on-surface-variant mt-1">ï¿½lbumes y tracks individuales. Pega el enlace en Descargar.</p></div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-title-md text-title-md text-on-surface">Bandcamp</h3>
+              <p class="text-body-sm text-on-surface-variant mt-1">Álbumes y tracks individuales. Pega el enlace en Descargar.</p>
+            </div>
           </div>
           <div class="flex gap-2">
             <button class="flex-1 px-3 py-2 rounded-lg bg-green-400/10 text-green-400 text-xs font-semibold hover:bg-green-400/20 transition-colors" onclick="window.open('https://bandcamp.com','_blank')">Abrir Bandcamp</button>
             <button class="flex-1 px-3 py-2 rounded-lg bg-surface-glass text-on-surface-variant text-xs hover:text-primary transition-colors" onclick="switchView('download')">Ir a Descargar</button>
           </div>
         </div>
+
         <div class="glass-card p-5 rounded-2xl hover:border-primary/50 transition-all">
           <div class="flex items-start gap-4 mb-3">
             <span class="material-symbols-outlined text-4xl text-blue-400" style="font-size:40px;font-variation-settings:'FILL' 1">link</span>
-            <div class="flex-1 min-w-0"><h3 class="font-title-md text-title-md text-on-surface">URL Directa</h3><p class="text-body-sm text-on-surface-variant mt-1">Enlace directo a MP3, M4A, FLAC. Pï¿½galo en Descargar para importarlo.</p></div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-title-md text-title-md text-on-surface">URL Directa</h3>
+              <p class="text-body-sm text-on-surface-variant mt-1">Enlace directo a MP3, M4A, FLAC. Pégalo en Descargar para importarlo.</p>
+            </div>
           </div>
           <button class="w-full px-3 py-2 rounded-lg bg-surface-glass text-on-surface-variant text-xs hover:text-primary transition-colors" onclick="switchView('download')">Ir a Descargar</button>
         </div>
+
         <div class="glass-card p-5 rounded-2xl hover:border-primary/50 transition-all">
           <div class="flex items-start gap-4 mb-3">
             <span class="material-symbols-outlined text-4xl text-secondary-container" style="font-size:40px;font-variation-settings:'FILL' 1">cloud_upload</span>
-            <div class="flex-1 min-w-0"><h3 class="font-title-md text-title-md text-on-surface">Subir archivos</h3><p class="text-body-sm text-on-surface-variant mt-1">Arrastra carpetas o archivos de mï¿½sica desde tu Mac. Se importan automï¿½ticamente a Navidrome.</p></div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-title-md text-title-md text-on-surface">Subir archivos</h3>
+              <p class="text-body-sm text-on-surface-variant mt-1">Arrastra carpetas o archivos de música desde tu Mac. Se importan automáticamente a Navidrome.</p>
+            </div>
           </div>
           <button class="w-full px-3 py-2 rounded-lg bg-secondary-container/10 text-secondary-container text-xs font-semibold hover:bg-secondary-container/20 transition-colors" onclick="switchView('import')">Ir a Importar</button>
         </div>
+
         <div class="glass-card p-5 rounded-2xl hover:border-primary/50 transition-all">
           <div class="flex items-start gap-4 mb-3">
             <span class="material-symbols-outlined text-4xl text-tertiary" style="font-size:40px">folder</span>
-            <div class="flex-1 min-w-0"><h3 class="font-title-md text-title-md text-on-surface">NAS / Synology</h3><p class="text-body-sm text-on-surface-variant mt-1">Explora las carpetas del NAS, discos USB y externos. Importa mï¿½sica directamente desde el servidor.</p></div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-title-md text-title-md text-on-surface">NAS / Synology</h3>
+              <p class="text-body-sm text-on-surface-variant mt-1">Explora las carpetas del NAS, discos USB y externos. Importa música directamente desde el servidor.</p>
+            </div>
           </div>
           <button class="w-full px-3 py-2 rounded-lg bg-tertiary/10 text-tertiary text-xs font-semibold hover:bg-tertiary/20 transition-colors" onclick="switchView('import')">Ir a Importar</button>
         </div>
       </div>
+
       <div class="glass-card p-5 rounded-2xl mt-6">
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined text-primary-container">lightbulb</span>
-          <p class="text-body-sm text-on-surface-variant">Todos los enlaces se pegan en la pestaûÝa <strong>Descargar</strong>. El pipeline soporta yt-dlp, lo que permite extraer audio de cientos de sitios web. Si encuentras uno que no funcione, avï¿½same.</p>
+          <p class="text-body-sm text-on-surface-variant">Todos los enlaces se pegan en la pestaña <strong>Descargar</strong>. El pipeline soporta yt-dlp, lo que permite extraer audio de cientos de sitios web. Si encuentras uno que no funcione, avísame.</p>
         </div>
       </div>
     </div>
@@ -294,8 +388,10 @@ export default function HomePage() {
       <div class="text-center mb-8">
         <span class="material-symbols-outlined text-6xl text-primary mb-4" style="font-size:64px">build</span>
         <h2 class="font-headline-xl text-headline-xl text-on-surface mb-2">Gestionar Biblioteca</h2>
-        <p class="text-body-sm text-on-surface-variant">Mantenimiento, limpieza y gestiï¿½n de ï¿½lbumes</p>
+        <p class="text-body-sm text-on-surface-variant">Mantenimiento, limpieza y gestión de álbumes</p>
       </div>
+
+      <!-- Mantenimiento -->
       <div class="glass-card p-6 rounded-2xl mb-4">
         <h3 class="font-title-md text-title-md text-on-surface mb-4 flex items-center gap-2">
           <span class="material-symbols-outlined text-primary-container">construction</span> Mantenimiento
@@ -303,7 +399,7 @@ export default function HomePage() {
         <div class="space-y-3">
           <button class="tool-btn" onclick="cleanupStale()">
             <span class="material-symbols-outlined text-primary-container">cleaning_services</span>
-            <div><strong>Limpiar Fantasmas</strong><br><span class="text-[11px] text-on-surface-variant">Elimina registros huï¿½rfanos de Navidrome y corrige conteos</span></div>
+            <div><strong>Limpiar Fantasmas</strong><br><span class="text-[11px] text-on-surface-variant">Elimina registros huérfanos de Navidrome y corrige conteos</span></div>
           </button>
           <button class="tool-btn" onclick="rescanNavidrome()">
             <span class="material-symbols-outlined text-secondary-container">refresh</span>
@@ -311,36 +407,41 @@ export default function HomePage() {
           </button>
           <button class="tool-btn" onclick="openLogs()">
             <span class="material-symbols-outlined text-yellow-400">bug_report</span>
-            <div><strong>Ver Logs del Pipeline</strong><br><span class="text-[11px] text-on-surface-variant">├Ültimas l├¡neas del registro de actividad</span></div>
+            <div><strong>Ver Logs del Pipeline</strong><br><span class="text-[11px] text-on-surface-variant">Últimas líneas del registro de actividad</span></div>
           </button>
         </div>
       </div>
+
+      <!-- Borrar Álbumes -->
       <div class="glass-card p-6 rounded-2xl mb-4">
         <h3 class="font-title-md text-title-md text-on-surface mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-red-400">delete</span> Borrar ï¿½lbumes
+          <span class="material-symbols-outlined text-red-400">delete</span> Borrar Álbumes
         </h3>
         <div class="relative w-full mb-4">
           <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-          <input class="w-full bg-surface-container-low border border-border-glass rounded-xl py-3 pl-12 pr-4 focus:ring-1 focus:ring-primary focus:border-primary-container transition-all outline-none text-body-sm" placeholder="Buscar ï¿½lbum para borrar..." type="search" id="deleteSearchInput" autocomplete="off" oninput="filterDeleteList(this.value)">
+          <input class="w-full bg-surface-container-low border border-border-glass rounded-xl py-3 pl-12 pr-4 focus:ring-1 focus:ring-primary focus:border-primary-container transition-all outline-none text-body-sm" placeholder="Buscar álbum para borrar..." type="search" id="deleteSearchInput" autocomplete="off" oninput="filterDeleteList(this.value)">
         </div>
-        <p class="text-body-sm text-on-surface-variant mb-4">Haz clic en un ï¿½lbum para borrarlo del disco y Navidrome</p>
+        <p class="text-body-sm text-on-surface-variant mb-4">Haz clic en un álbum para borrarlo del disco y Navidrome</p>
         <div class="max-h-64 overflow-y-auto space-y-2" id="deleteAlbumList">
           <div class="text-center py-8"><div class="spinner mx-auto"></div></div>
         </div>
       </div>
+
+      <!-- Información del sistema -->
       <div class="glass-card p-6 rounded-2xl">
         <h3 class="font-title-md text-title-md text-on-surface mb-4 flex items-center gap-2">
           <span class="material-symbols-outlined text-tertiary">info</span> Sistema
         </h3>
         <div class="grid grid-cols-2 gap-4 text-body-sm">
           <div><span class="text-on-surface-variant">Pipeline:</span> <span class="text-on-surface" id="sysVersion">v1.2.0</span></div>
-          <div><span class="text-on-surface-variant">Total ï¿½lbumes:</span> <span class="text-on-surface" id="sysAlbums">—</span></div>
+          <div><span class="text-on-surface-variant">Total álbumes:</span> <span class="text-on-surface" id="sysAlbums">—</span></div>
           <div><span class="text-on-surface-variant">Total pistas:</span> <span class="text-on-surface" id="sysTracks">—</span></div>
           <div><span class="text-on-surface-variant">Navidrome:</span> <span class="text-on-surface" id="sysNavidrome">—</span></div>
         </div>
       </div>
     </div>
   </div>
+
 </main>
 
 <!-- Bottom Nav -->
@@ -412,8 +513,7 @@ export default function HomePage() {
   </div>
   <audio id="audioPlayer" controls class="h-9 flex-shrink-0 rounded-lg"></audio>
 </div>
-`
-      }}
-    />
-  );
-}
+
+<script src="jazzone.js?v=1.4.0"></script>
+</body>
+</html>
