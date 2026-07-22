@@ -720,8 +720,8 @@ document.addEventListener('click', (e) => {
     const m = e.target.closest('.modal-overlay');
     if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
   }
-  // Close full player on overlay click
-  if (e.target.closest('#fullPlayerOverlay') && !e.target.closest('#fullPlayerOverlay > div')) {
+  // Close full player ONLY on dedicated close button
+  if (e.target.closest('.fp-close-btn')) {
     closeFullPlayer();
   }
 });
