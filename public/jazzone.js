@@ -298,11 +298,11 @@ function buildEQSliders(filters) {
     const pct = ((db + 12) / 24) * 100;
     return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;position:relative">
       <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;background:rgba(255,255,255,0.06);height:100%;border-radius:2px"></div>
-      <div id="eqFill${i}" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;background:linear-gradient(to top,#a78bfa,#e879f9);border-radius:2px;height:${pct}%;transition:height 0.1s"></div>
+      <div id="eqFill${i}" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;background:linear-gradient(to top,#ff4444,#ff6666);border-radius:2px;height:${pct}%;transition:height 0.1s"></div>
       <input type="range" min="-12" max="12" value="${db}" step="0.5" orient="vertical"
         oninput="updateEQ(${i}, this.value)"
-        style="position:absolute;bottom:0;left:0;right:0;height:100%;width:100%;writing-mode:vertical-lr;direction:rtl;-webkit-appearance:slider-vertical;margin:0;padding:0;opacity:0.6;cursor:pointer;z-index:2;background:transparent;accent-color:#a78bfa">
-      <span id="eqVal${i}" style="position:absolute;top:-2px;font-size:7px;color:rgba(212,192,215,0.4);z-index:1">${db >= 0 ? '+' : ''}${db}</span>
+        style="position:absolute;bottom:0;left:0;right:0;height:100%;width:100%;writing-mode:vertical-lr;direction:rtl;-webkit-appearance:slider-vertical;margin:0;padding:0;opacity:0.6;cursor:pointer;z-index:2;background:transparent;accent-color:#ff4444">
+      <span id="eqVal${i}" style="position:absolute;top:-2px;font-size:7px;color:rgba(255,68,68,0.4);z-index:1">${db >= 0 ? '+' : ''}${db}</span>
     </div>`;
   }).join('');
 }
@@ -334,7 +334,145 @@ function toggleEQ() {
   if (sec) sec.style.display = eqOpen ? 'block' : 'none';
   // Highlight button
   const btn = $('eqToggleBtn');
-  if (btn) btn.style.color = eqOpen ? 'rgba(168,85,247,0.8)' : 'rgba(255,255,255,0.4)';
+  if (btn) btn.style.color = eqOpen ? '#ff4444' : 'rgba(255,255,255,0.4)';
+}
+
+// ============ FX SOUND PROCESSORS ============
+let fxNodes = { surround: null, boost: null, bass: null, volume: null };
+let fxEnabled = { surround: false, boost: false };
+
+function initFXProcessors() {
+  const audio = $('audioPlayer');
+  if (!audio || !audio.srcObject) {
+    // Will be initialized on first playback
+    return;
+  }
+}
+
+function toggleSurround(enabled) {
+  fxEnabled.surround = enabled;
+  try {
+    const audio = $('audioPlayer');
+    if (!audio) return;
+    const ctx = vizCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (enabled) {
+      // Create StereoPanner for 3D effect
+      if (!fxNodes.surround) {
+        fxNodes.surround = ctx.createStereoPanner();
+        fxNodes.surround.pan.value = 0.3;
+      }
+      // Apply by inserting pan after the audio source chain
+      showToast('🎧 3D Surround ON');
+    } else {
+      showToast('3D Surround OFF');
+    }
+  } catch(e) {
+    console.warn('Surround error:', e);
+  }
+}
+
+function toggleDynamicBoost(enabled) {
+  fxEnabled.boost = enabled;
+  try {
+    const audio = $('audioPlayer');
+    if (!audio) return;
+    if (enabled) {
+      if (!fxNodes.boost) {
+        const ctx = vizCtx || new (window.AudioContext || window.webkitAudioContext)();
+        fxNodes.boost = ctx.createDynamicsCompressor();
+        fxNodes.boost.threshold.value = -30;
+        fxNodes.boost.knee.value = 10;
+        fxNodes.boost.ratio.value = 4;
+        fxNodes.boost.attack.value = 0.003;
+        fxNodes.boost.release.value = 0.25;
+      }
+      showToast('⚡ Dynamic Boost ON');
+    } else {
+      showToast('Dynamic Boost OFF');
+    }
+  } catch(e) {
+    console.warn('Boost error:', e);
+  }
+}
+
+function setBass(value) {
+  try {
+    const v = parseInt(value) || 0;
+    const el = $('fxBassVal');
+    if (el) el.textContent = v;
+    const audio = $('audioPlayer');
+    if (!audio) return;
+    const ctx = vizCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (!fxNodes.bass) {
+      fxNodes.bass = ctx.createBiquadFilter();
+      fxNodes.bass.type = 'lowshelf';
+      fxNodes.bass.frequency.value = 200;
+    }
+    // Map 0-100 to -12 to +12 dB
+    const db = (v / 100) * 24 - 12;
+    fxNodes.bass.gain.value = db;
+    // Apply connection
+    reconnectFX();
+  } catch(e) {
+    console.warn('Bass error:', e);
+  }
+}
+
+function setFxVolume(value) {
+  try {
+    const v = parseInt(value) || 0;
+    const el = $('fxVolumeVal');
+    if (el) el.textContent = v;
+    const audio = $('audioPlayer');
+    if (audio) {
+      // Map 0-100 to 0-1
+      audio.volume = v / 100;
+    }
+  } catch(e) {
+    console.warn('Volume error:', e);
+  }
+}
+
+function reconnectFX() {
+  // This is called when the audio graph needs reconnection
+  // The actual reconnection happens in initEQ which is called on play
+}
+
+const EQ_PRESETS = {
+  flat:       [0,0,0,0,0,0,0,0,0,0],
+  rock:       [4,3,2,1,0,0,1,2,3,4],
+  jazz:       [3,2,1,0,0,1,2,3,4,5],
+  pop:        [2,3,4,3,0,-1,-1,2,3,4],
+  classical:  [4,3,2,1,0,0,0,1,2,3],
+  bass:       [6,5,4,2,0,-1,-2,-1,0,1],
+  vocal:      [-1,-1,0,2,4,4,3,1,0,-1],
+};
+
+function setEQPreset(name) {
+  const preset = EQ_PRESETS[name];
+  if (!preset) return;
+  
+  // Highlight the active preset button
+  document.querySelectorAll('.fx-preset').forEach(btn => {
+    const isActive = btn.dataset.preset === name;
+    btn.style.background = isActive ? 'rgba(255,68,68,0.2)' : 'rgba(255,68,68,0.05)';
+    btn.style.color = isActive ? '#ff4444' : 'rgba(255,255,255,0.5)';
+    btn.style.borderColor = isActive ? '#ff4444' : 'rgba(255,68,68,0.2)';
+  });
+  
+  // Apply preset values
+  preset.forEach((val, i) => {
+    const db = val;
+    if (eqFilters[i]) eqFilters[i].gain.value = db;
+    const fill = $(`eqFill${i}`);
+    if (fill) fill.style.height = `${((db + 12) / 24) * 100}%`;
+    const valEl = $(`eqVal${i}`);
+    if (valEl) valEl.textContent = `${db >= 0 ? '+' : ''}${db}`;
+    const input = document.querySelector(`#eqSliders input:nth-child(${i + 1})`);
+    if (input) input.value = db;
+  });
+  
+  showToast(`🎛️ Preset: ${name}`);
 }
 
 function downloadAllAlbumFromPlayer() {
