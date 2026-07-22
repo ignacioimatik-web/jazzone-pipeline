@@ -1,36 +1,99 @@
 "use client";
 
-import { Suspense, useState, FormEvent } from "react";
+import { Suspense, useState, FormEvent, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function LoginForm() {
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [blocked, setBlocked] = useState(false);
+  const [blockTimer, setBlockTimer] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Comprobar si hay bloqueo activo
+  useEffect(() => {
+    const blockedUntil = localStorage.getItem("login_blocked_until");
+    if (blockedUntil) {
+      const remaining = parseInt(blockedUntil) - Date.now();
+      if (remaining > 0) {
+        setBlocked(true);
+        setBlockTimer(Math.ceil(remaining / 1000));
+        const interval = setInterval(() => {
+          const rem = parseInt(blockedUntil) - Date.now();
+          if (rem <= 0) {
+            setBlocked(false);
+            localStorage.removeItem("login_blocked_until");
+            clearInterval(interval);
+          } else {
+            setBlockTimer(Math.ceil(rem / 1000));
+          }
+        }, 1000);
+        return () => clearInterval(interval);
+      } else {
+        localStorage.removeItem("login_blocked_until");
+      }
+    }
+  }, []);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (blocked) return;
+
     setLoading(true);
-    setError(false);
+    setError("");
 
     try {
+      const startTime = Date.now();
       const res = await fetch("/api/verify-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
 
+      // Forzar mínimo 1.5s de respuesta para evitar timing attacks
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 1500) {
+        await new Promise(r => setTimeout(r, 1500 - elapsed));
+      }
+
       if (res.ok) {
+        // Login exitoso → limpiar intentos
+        localStorage.removeItem("login_attempts");
+        localStorage.removeItem("login_blocked_until");
         const dest = searchParams.get("from") || "/";
         window.location.href = dest;
+      } else if (res.status === 429) {
+        // Demasiados intentos
+        const data = await res.json();
+        setError(data.error || "Demasiados intentos. Espera unos segundos.");
+        const blockTime = (data.retryAfter || 30) * 1000;
+        localStorage.setItem("login_blocked_until", String(Date.now() + blockTime));
+        setBlocked(true);
+        setBlockTimer(data.retryAfter || 30);
+        setLoading(false);
       } else {
-        setError(true);
+        // Contraseña incorrecta
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+        localStorage.setItem("login_attempts", String(newAttempts));
+
+        if (newAttempts >= 5) {
+          // Bloquear localmente 30 segundos
+          const blockTime = Math.min(30 * Math.pow(2, newAttempts - 5), 300) * 1000;
+          localStorage.setItem("login_blocked_until", String(Date.now() + blockTime));
+          setBlocked(true);
+          setBlockTimer(Math.ceil(blockTime / 1000));
+          setError(`Demasiados intentos. Espera ${Math.ceil(blockTime / 1000)}s.`);
+        } else {
+          setError(`Contraseña incorrecta. Intento ${newAttempts}/5.`);
+        }
         setLoading(false);
       }
     } catch {
-      setError(true);
+      setError("Error de conexión. Inténtalo de nuevo.");
       setLoading(false);
     }
   };
@@ -55,29 +118,33 @@ function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Introduce la contraseña"
+              placeholder={blocked ? `Bloqueado ${blockTimer}s` : "Introduce la contraseña"}
+              disabled={blocked}
               autoFocus
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all"
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all disabled:opacity-40"
             />
           </div>
 
           {error && (
             <div className="mb-4 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
-              <p className="text-xs text-rose-300">Contraseña incorrecta</p>
+              <p className="text-xs text-rose-300">{error}</p>
             </div>
           )}
 
           <button
             type="submit"
-            disabled={loading || !password}
+            disabled={loading || !password || blocked}
             className="w-full py-3 rounded-xl font-semibold text-sm tracking-wider text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
-            style={{ background: "linear-gradient(135deg,#a78bfa,#7c3aed)", boxShadow: "0 0 30px -10px rgba(168,85,247,0.4)" }}
+            style={{ background: blockTimer > 0 ? "gray" : "linear-gradient(135deg,#a78bfa,#7c3aed)", boxShadow: blockTimer > 0 ? "none" : "0 0 30px -10px rgba(168,85,247,0.4)" }}
           >
-            {loading ? "Verificando..." : "Acceder"}
+            {loading ? "Verificando..." : blockTimer > 0 ? `Bloqueado ${blockTimer}s` : "Acceder"}
           </button>
         </form>
 
-        <p className="text-center text-[10px] text-white/20 mt-6">Pipeline personal · JazzOne</p>
+        <div className="mt-6 flex items-center justify-center gap-2 text-[10px] text-white/20">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <span>Conexión segura · HTTPS</span>
+        </div>
       </div>
     </div>
   );
