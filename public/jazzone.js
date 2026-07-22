@@ -46,17 +46,16 @@ function initPlayerEngine() {
     });
   }
 
-  // Init audio context for visualizer on first user interaction
+  // Init audio context for equalizer + visualizer on first user interaction
   let vizInitialized = false;
   const initViz = () => {
     if (!vizInitialized) {
-      initVisualizer();
+      initEQ();
       vizInitialized = true;
     }
   };
   document.addEventListener('click', initViz, { once: true });
   document.addEventListener('touchstart', initViz, { once: true });
-  document.addEventListener('keydown', initViz, { once: true });
 }
 
 function playAlbum(encodedName) {
@@ -99,7 +98,8 @@ function playCurrentTrack() {
   if (!audio || player.currentIndex < 0 || player.currentIndex >= player.tracks.length) return;
   const track = player.tracks[player.currentIndex];
   audio.src = `${API}/api/library/${player.album}/${encodeSegment(track)}`;
-  audio.play().catch(() => {});
+  player.isPlaying = true;
+  audio.play().catch(() => { player.isPlaying = false; });
 
   const trackName = decodeURIComponent(track).replace('.m4a','');
   const albumName = decodeURIComponent(player.album);
@@ -227,6 +227,93 @@ function drawViz() {
   vizAnimId = requestAnimationFrame(drawViz);
 }
 
+// ============ EQUALIZER ============
+let eqFilters = [];
+const EQ_FREQS = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+
+function initEQ() {
+  const audio = $('audioPlayer');
+  if (!audio) return;
+  try {
+    // Create AudioContext and connect filters between source and analyser
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = ctx.createMediaElementSource(audio);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    
+    // Connect: source → eqFilters → analyser → destination
+    let lastNode = source;
+    eqFilters = EQ_FREQS.map(freq => {
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'peaking';
+      filter.frequency.value = freq;
+      filter.Q.value = 1;
+      filter.gain.value = 0;
+      lastNode.connect(filter);
+      lastNode = filter;
+      return filter;
+    });
+    lastNode.connect(analyser);
+    analyser.connect(ctx.destination);
+    
+    // Store for visualizer
+    vizCtx = ctx;
+    vizAnalyser = analyser;
+    
+    // Build EQ sliders UI
+    buildEQSliders();
+  } catch(e) { /* audio context error */ }
+}
+
+function buildEQSliders() {
+  const container = $('eqSliders');
+  if (!container) return;
+  container.innerHTML = EQ_FREQS.map((freq, i) => {
+    const db = eqFilters[i]?.gain?.value || 0;
+    const pct = ((db + 12) / 24) * 100;
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;position:relative">
+      <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;background:rgba(255,255,255,0.06);height:100%;border-radius:2px"></div>
+      <div id="eqFill${i}" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;background:linear-gradient(to top,#a78bfa,#e879f9);border-radius:2px;height:${pct}%;transition:height 0.1s"></div>
+      <input type="range" min="-12" max="12" value="${db}" step="0.5" orient="vertical"
+        oninput="updateEQ(${i}, this.value)"
+        style="position:absolute;bottom:0;left:0;right:0;height:100%;width:100%;writing-mode:vertical-lr;direction:rtl;appearance:slider-vertical;-webkit-appearance:slider-vertical;margin:0;padding:0;opacity:0.6;cursor:pointer;z-index:2">
+      <span id="eqVal${i}" style="position:absolute;top:-2px;font-size:7px;color:rgba(212,192,215,0.4);z-index:1">${db >= 0 ? '+' : ''}${db}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateEQ(index, value) {
+  const v = parseFloat(value);
+  if (eqFilters[index]) eqFilters[index].gain.value = v;
+  const fill = $(`eqFill${index}`);
+  if (fill) fill.style.height = `${((v + 12) / 24) * 100}%`;
+  const val = $(`eqVal${index}`);
+  if (val) val.textContent = `${v >= 0 ? '+' : ''}${v}`;
+}
+
+function resetEQ() {
+  eqFilters.forEach((f, i) => {
+    f.gain.value = 0;
+    const fill = $(`eqFill${i}`);
+    if (fill) fill.style.height = '50%';
+    const val = $(`eqVal${i}`);
+    if (val) val.textContent = '+0';
+    const slider = document.querySelector(`#eqSliders input:nth-child(${i * 3 + 2})`);
+    if (slider) slider.value = '0';
+  });
+}
+
+let eqOpen = false;
+function toggleEQ() {
+  eqOpen = !eqOpen;
+  const sec = $('eqSection');
+  if (sec) sec.style.maxHeight = eqOpen ? '120px' : '0';
+}
+
+function downloadAllAlbumFromPlayer() {
+  if (player.album) downloadAllAlbum(player.album);
+}
+
 function onTimeUpdate() {
   const audio = $('audioPlayer');
   if (!audio || !audio.duration) return;
@@ -302,6 +389,7 @@ function updateFullPlayerInfo() {
   $('fpTrackName').textContent = trackName;
   $('fpAlbumName').textContent = albumName;
   $('fpTrackCount').textContent = `${player.currentIndex + 1} of ${player.tracks.length}`;
+  $('fpTrackCountSmall').textContent = `${player.tracks.length} tracks`;
   $('fpTrackList').innerHTML = player.tracks.map((t,i) => {
     const n = decodeURIComponent(t).replace('.m4a','');
     const cur = i === player.currentIndex;
@@ -445,43 +533,37 @@ async function playFirstTrack() {
   playAlbum(encodeSegment(album.name));
 }
 
-// ============ ALBUM MODAL ============
+// ============ OPEN ALBUM → FULL PLAYER ============
 async function openAlbum(encodedName) {
   const name = decodeURIComponent(encodedName);
-  const modal = $('albumModal');
-  if (!modal) return;
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
-
+  
+  // Load album and open full player directly
   const album = libraryCache?.find(a => a.name === name);
-  const isCurrentAlbum = player.album && decodeURIComponent(player.album) === name && player.tracks.length > 0;
-  const isPlaying = isCurrentAlbum && player.isPlaying;
-
-  $('albumDetail').innerHTML = `
-    <div class="text-center mb-6">
-      <img src="${album?.cover || ''}" alt="${escapeHtml(name)}" class="w-40 h-40 rounded-2xl object-cover mx-auto mb-4 shadow-lg" onerror="this.style.display='none';this.parentElement.innerHTML+='<div class=\\'w-40 h-40 rounded-2xl mx-auto mb-4 bg-[#222] flex items-center justify-center text-5xl\\'>🎵</div>'">
-      <h2 class="text-2xl font-bold text-white/90 tracking-tight">${escapeHtml(name)}</h2>
-      <p class="text-xs text-white/40 uppercase tracking-wider mt-2">${album?.track_count || '?'} Tracks</p>
-      <div class="flex gap-3 justify-center mt-4">
-        <button class="album-play-all-btn flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;box-shadow:0 0 20px -8px rgba(168,85,247,0.4)" onclick="playAlbum('${encodedName}')">
-          ${isPlaying
-            ? '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 005.75 3zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z"/></svg>'
-            : '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>'}
-          ${isPlaying ? 'Pause' : 'Play All'}
-        </button>
-        <button class="flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold transition-all bg-white/5 border border-white/10 text-white/50 hover:bg-white/10" onclick="downloadAllAlbum('${encodedName}')"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> ZIP</button>
-        <button class="flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold transition-all bg-white/5 border border-white/10 text-rose-400/70 hover:bg-rose-500/10" onclick="deleteAlbumFromDetail('${encodedName}')"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-      </div>
-    </div>
-    <div class="space-y-1" id="modalTrackList"><div class="text-center py-8"><div class="w-6 h-6 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto"></div></div></div>`;
-
-  // Fetch tracks
+  if (!album) { showToast('Album not found'); return; }
+  
+  // Load tracks
   try {
     const res = await fetch(`${API}/api/library/` + encodeURIComponent(name) + '/tracks');
     const data = await res.json();
-    const list = $('modalTrackList');
-    if (list && data.tracks) renderModalTrackList(list, encodedName, data.tracks);
-  } catch(e) {}
+    if (!data.tracks || data.tracks.length === 0) { showToast('No tracks'); return; }
+    
+    // Set player state
+    player.album = encodedName;
+    player.albumCover = album?.cover || '';
+    player.tracks = data.tracks;
+    player.currentIndex = player.currentIndex >= 0 ? player.currentIndex : 0;
+    
+    // Update full player UI
+    updateFullPlayerInfo();
+    
+    // Open full player
+    player.isFullScreen = true;
+    const ov = $('fullPlayerOverlay');
+    if (ov) { ov.classList.remove('hidden'); ov.classList.add('flex'); }
+    
+    // Show mini player
+    $('miniPlayer').style.display = 'flex';
+  } catch(e) { showToast('Error loading album'); }
 }
 
 function renderModalTrackList(list, encodedName, tracks) {
@@ -607,16 +689,20 @@ async function cleanupStale() {
 
 // ============ MODALS ============
 document.addEventListener('click', (e) => {
+  // Close modals on overlay click
   if (e.target.closest('.modal-overlay') && !e.target.closest('.modal-content')) {
-    const m = document.querySelector('.modal-overlay');
+    const m = document.querySelector('.modal-overlay:not(.hidden)');
     if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
   }
-});
-document.querySelectorAll('.modal-close').forEach(b => {
-  b.addEventListener('click', () => {
-    const m = b.closest('.modal-overlay');
+  // Close modals on .modal-close click (event delegation)
+  if (e.target.closest('.modal-close')) {
+    const m = e.target.closest('.modal-overlay');
     if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
-  });
+  }
+  // Close full player on overlay click
+  if (e.target.closest('#fullPlayerOverlay') && !e.target.closest('#fullPlayerOverlay > div')) {
+    closeFullPlayer();
+  }
 });
 
 // ============ NAVIGATION / SORT ============

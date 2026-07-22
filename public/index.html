@@ -505,57 +505,89 @@
   </div>
 </div>
 
-<!-- FULL PLAYER OVERLAY -->
+<!-- FULL PLAYER OVERLAY (Apple Music style) -->
 <div class="fixed inset-0 z-50 hidden flex-col" id="fullPlayerOverlay" style="background:rgba(10,10,15,0.97);backdrop-filter:blur(40px)">
-  <div class="full-player-content" style="flex:1;display:flex;flex-direction:column;max-width:480px;margin:0 auto;width:100%;padding:24px 16px;overflow:hidden">
+  <div style="flex:1;display:flex;flex-direction:column;max-width:480px;margin:0 auto;width:100%;padding:20px 16px;overflow:hidden">
+    
     <!-- Header -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-shrink:0">
-      <button onclick="closeFullPlayer()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;transition:all 0.2s">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-shrink:0">
+      <button onclick="closeFullPlayer()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7"/></svg>
       </button>
       <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3)" id="fpTrackCount">— of —</span>
-      <div style="width:36px;height:36px"></div>
+      <button onclick="downloadAllAlbumFromPlayer()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;transition:all 0.2s" title="Download ZIP">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      </button>
     </div>
 
-    <!-- Album Art + Visualizer Canvas -->
-    <div style="position:relative;width:100%;aspect-ratio:1;max-width:340px;margin:0 auto 16px;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(168,85,247,0.25);flex-shrink:0">
+    <!-- Album Art + Visualizer -->
+    <div id="fpArtContainer" style="position:relative;width:100%;aspect-ratio:1;max-width:320px;margin:0 auto 12px;border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(168,85,247,0.2);flex-shrink:0;cursor:pointer" onclick="toggleEQ()">
       <img id="fpAlbumArt" src="" alt="Album art" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"
         onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'><rect fill=\'%23222\' width=\'200\' height=\'200\'/><text x=\'50%\' y=\'50%\' text-anchor=\'middle\' font-size=\'60\'>🎵</text></svg>'">
-      <!-- Canvas overlay for visualizer -->
-      <canvas id="fpVisualizer" style="position:absolute;bottom:0;left:0;right:0;height:40%;width:100%;pointer-events:none;opacity:0.7"></canvas>
+      <canvas id="fpVisualizer" style="position:absolute;bottom:0;left:0;right:0;height:35%;width:100%;pointer-events:none;opacity:0.75"></canvas>
+      <!-- EQ toggle hint -->
+      <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);border-radius:8px;padding:4px 8px;font-size:9px;color:rgba(255,255,255,0.5);pointer-events:none">EQ</div>
     </div>
 
     <!-- Track Info -->
-    <div style="text-align:center;flex-shrink:0;margin-bottom:12px">
-      <div style="font-size:17px;font-weight:700;color:#e5e2e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="fpTrackName">No track</div>
-      <div style="font-size:13px;color:#d4c0d7;margin-top:4px" id="fpAlbumName">—</div>
+    <div style="text-align:center;flex-shrink:0;margin-bottom:10px">
+      <div style="font-size:16px;font-weight:700;color:#e5e2e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="fpTrackName">Select an album</div>
+      <div style="font-size:12px;color:#d4c0d7;margin-top:2px" id="fpAlbumName">—</div>
     </div>
 
     <!-- Seek Bar -->
-    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;margin-bottom:14px">
-      <span style="font-size:11px;color:rgba(212,192,215,0.6);font-family:monospace;min-width:32px" id="playerCurrentTime">--:--</span>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-bottom:10px">
+      <span style="font-size:10px;color:rgba(212,192,215,0.5);font-family:monospace;min-width:30px" id="playerCurrentTime">--:--</span>
       <div style="flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:4px;cursor:pointer;position:relative" onclick="seekTrack(event.offsetX / this.offsetWidth * (document.getElementById('audioPlayer').duration || 0))">
-        <div style="height:100%;background:linear-gradient(90deg,#a78bfa,#e879f9);border-radius:4px;width:0%;transition:width 0.3s linear" id="fpSeekFill"></div>
+        <div style="height:100%;background:linear-gradient(90deg,#a78bfa,#e879f9);border-radius:4px;width:0%;transition:width 0.2s linear" id="fpSeekFill"></div>
       </div>
-      <span style="font-size:11px;color:rgba(212,192,215,0.6);font-family:monospace;min-width:32px" id="playerTotalTime">--:--</span>
+      <span style="font-size:10px;color:rgba(212,192,215,0.5);font-family:monospace;min-width:30px" id="playerTotalTime">--:--</span>
     </div>
 
     <!-- Controls -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:36px;flex-shrink:0;margin-bottom:20px">
-      <button onclick="prevTrack()" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;transition:all 0.2s">
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M6.704 4.711a.75.75 0 01.78.062 3.236 3.236 0 001.266.785A3.25 3.25 0 0010 5.75c.78 0 1.5.22 2.11.59a.75.75 0 01.28.316l4.406 10.555a.75.75 0 01-.375.97.75.75 0 01-.541.053 7.73 7.73 0 00-5.88 0 .75.75 0 01-.54-.053.75.75 0 01-.376-.97l2.784-6.668A1.5 1.5 0 0010 9.25c-.476 0-.936.092-1.36.273a3.25 3.25 0 00-1.266.785.75.75 0 01-.78.063.75.75 0 01-.468-.574l-.37-2.087a2.513 2.513 0 01-.088-.635c0-.435.09-.87.256-1.265a.75.75 0 01.78-.404z"/><path d="M4.03 5.273a.75.75 0 011.025.275c.21.365.506.647.86.82a3.25 3.25 0 001.266.785c.3.103.621.16.944.169v1.948a1.5 1.5 0 00-.715 1.572l2.785 6.668a.75.75 0 01-.917 1.027 9.23 9.23 0 00-2.56-.666l-.178-.09a.75.75 0 01-.374-.52.75.75 0 01.17-.62c.23-.273.497-.512.796-.712a.75.75 0 01.574-.093.75.75 0 01.435.342l.62.373a7.74 7.74 0 012.828-.89l.036-.088-.348-.832A.75.75 0 0011 11.25V8.764c-.19-.029-.376-.076-.56-.14a4.75 4.75 0 01-1.85-1.145.75.75 0 01-.44-.646l-.043-.341A.75.75 0 018.5 6.25h-1.5a.75.75 0 01-.432-.14.75.75 0 01-.294-.574l-.036-.36a.75.75 0 01.792-.803z"/></svg>
+    <div style="display:flex;align-items:center;justify-content:center;gap:32px;flex-shrink:0;margin-bottom:8px">
+      <button onclick="prevTrack()" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">
+        <svg width="22" height="22" fill="currentColor" viewBox="0 0 20 20"><path d="M6.704 4.711a.75.75 0 01.78.062 3.236 3.236 0 001.266.785A3.25 3.25 0 0010 5.75c.78 0 1.5.22 2.11.59a.75.75 0 01.28.316l4.406 10.555a.75.75 0 01-.375.97.75.75 0 01-.541.053 7.73 7.73 0 00-5.88 0 .75.75 0 01-.54-.053.75.75 0 01-.376-.97l2.784-6.668A1.5 1.5 0 0010 9.25c-.476 0-.936.092-1.36.273a3.25 3.25 0 00-1.266.785.75.75 0 01-.78.063.75.75 0 01-.468-.574l-.37-2.087a2.513 2.513 0 01-.088-.635c0-.435.09-.87.256-1.265a.75.75 0 01.78-.404z"/><path d="M4.03 5.273a.75.75 0 011.025.275c.21.365.506.647.86.82a3.25 3.25 0 001.266.785c.3.103.621.16.944.169v1.948a1.5 1.5 0 00-.715 1.572l2.785 6.668a.75.75 0 01-.917 1.027 9.23 9.23 0 00-2.56-.666l-.178-.09a.75.75 0 01-.374-.52.75.75 0 01.17-.62c.23-.273.497-.512.796-.712a.75.75 0 01.574-.093.75.75 0 01.435.342l.62.373a7.74 7.74 0 012.828-.89l.036-.088-.348-.832A.75.75 0 0011 11.25V8.764c-.19-.029-.376-.076-.56-.14a4.75 4.75 0 01-1.85-1.145.75.75 0 01-.44-.646l-.043-.341A.75.75 0 018.5 6.25h-1.5a.75.75 0 01-.432-.14.75.75 0 01-.294-.574l-.036-.36a.75.75 0 01.792-.803z"/></svg>
       </button>
-      <button id="fpPlayBtn" onclick="const a=document.getElementById('audioPlayer');if(!a)return;if(a.paused)a.play().catch(()=>{});else a.pause()" style="width:60px;height:60px;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(168,85,247,0.4);transition:all 0.2s">
-        <span id="fpPlayIcon"><svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg></span>
+      <button id="fpPlayBtn" onclick="const a=document.getElementById('audioPlayer');if(!a)return;if(a.paused)a.play().catch(()=>{});else a.pause()" style="width:56px;height:56px;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(168,85,247,0.3);transition:all 0.2s">
+        <span id="fpPlayIcon"><svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg></span>
       </button>
-      <button onclick="nextTrack()" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;transition:all 0.2s">
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M13.296 4.711a.75.75 0 00-.78.062 3.236 3.236 0 01-1.266.785A3.25 3.25 0 0010 5.75c-.78 0-1.5.22-2.11.59a.75.75 0 00-.28.316l-4.406 10.555a.75.75 0 00.375.97.75.75 0 00.541.053 7.73 7.73 0 015.88 0 .75.75 0 00.54-.053.75.75 0 00.376-.97l-2.784-6.668A1.5 1.5 0 0010 9.25c.476 0 .936.092 1.36.273a3.25 3.25 0 011.266.785.75.75 0 00.78.063.75.75 0 00.468-.574l.37-2.087c.057-.207.088-.42.088-.635 0-.435-.09-.87-.256-1.265a.75.75 0 00-.78-.404z"/><path d="M15.97 5.273a.75.75 0 00-1.025.275c-.21.365-.506.647-.86.82a3.25 3.25 0 01-1.266.785c-.3.103-.621.16-.944.169v1.948a1.5 1.5 0 01.715 1.572l-2.785 6.668a.75.75 0 00.917 1.027 9.23 9.23 0 012.56-.666l.178-.09a.75.75 0 00.374-.52.75.75 0 00-.17-.62 3.236 3.236 0 00-.796-.712.75.75 0 00-.574-.093.75.75 0 00-.435.342l-.62.373a7.74 7.74 0 01-2.828.89l-.036-.088.348-.832A.75.75 0 009 11.25V8.764c.19-.029.376-.076.56-.14a4.75 4.75 0 001.85-1.145.75.75 0 00.44-.646l.043-.341A.75.75 0 0011.5 6.25h1.5a.75.75 0 00.432-.14.75.75 0 00.294-.574l.036-.36a.75.75 0 00-.792-.803z"/></svg>
+      <button onclick="nextTrack()" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">
+        <svg width="22" height="22" fill="currentColor" viewBox="0 0 20 20"><path d="M13.296 4.711a.75.75 0 00-.78.062 3.236 3.236 0 01-1.266.785A3.25 3.25 0 0010 5.75c-.78 0-1.5.22-2.11.59a.75.75 0 00-.28.316l-4.406 10.555a.75.75 0 00.375.97.75.75 0 00.541.053 7.73 7.73 0 015.88 0 .75.75 0 00.54-.053.75.75 0 00.376-.97l-2.784-6.668A1.5 1.5 0 0010 9.25c.476 0 .936.092 1.36.273a3.25 3.25 0 011.266.785.75.75 0 00.78.063.75.75 0 00.468-.574l.37-2.087c.057-.207.088-.42.088-.635 0-.435-.09-.87-.256-1.265a.75.75 0 00-.78-.404z"/><path d="M15.97 5.273a.75.75 0 00-1.025.275c-.21.365-.506.647-.86.82a3.25 3.25 0 01-1.266.785c-.3.103-.621.16-.944.169v1.948a1.5 1.5 0 01.715 1.572l-2.785 6.668a.75.75 0 00.917 1.027 9.23 9.23 0 012.56-.666l.178-.09a.75.75 0 00.374-.52.75.75 0 00-.17-.62 3.236 3.236 0 00-.796-.712.75.75 0 00-.574-.093.75.75 0 00-.435.342l-.62.373a7.74 7.74 0 01-2.828.89l-.036-.088.348-.832A.75.75 0 009 11.25V8.764c.19-.029.376-.076.56-.14a4.75 4.75 0 001.85-1.145.75.75 0 00.44-.646l.043-.341A.75.75 0 0011.5 6.25h1.5a.75.75 0 00.432-.14.75.75 0 00.294-.574l.036-.36a.75.75 0 00-.792-.803z"/></svg>
       </button>
     </div>
 
+    <!-- Equalizer (collapsible) -->
+    <div id="eqSection" style="flex-shrink:0;overflow:hidden;max-height:0;transition:max-height 0.3s ease;margin-bottom:0">
+      <div style="padding:8px 4px 12px;border-top:1px solid rgba(255,255,255,0.06)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(212,192,215,0.5)">Equalizer</span>
+          <button onclick="resetEQ()" style="font-size:9px;color:rgba(168,85,247,0.6);background:none;border:none;cursor:pointer">Reset</button>
+        </div>
+        <div id="eqSliders" style="display:flex;gap:4px;align-items:flex-end;height:60px">
+          <!-- 10 sliders generated by JS -->
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:0 2px;margin-top:4px">
+          <span style="font-size:7px;color:rgba(255,255,255,0.2)">32Hz</span>
+          <span style="font-size:7px;color:rgba(255,255,255,0.2)">64</span>
+          <span style="font-size:7px;color:rgba(255,255,255,0.2)">125</span>
+          <span style="font-size:7px;color:rgba(255,255,255,0.2)">250</span>
+          <span style="font-size:7px;color:rgba(255,255,255,0.2)">500</span>
+          <span style="font-size:7px;color:rgba(255,255,255,0.2)">1k</span>
+          <span style="font-size:7px;color:rgba(255,255,255,0.2)">2k</span>
+          <span style="font-size:7px;color:rgba(255,255,255,0.2)">4k</span>
+          <span style="font-size:7px;color:rgba(255,255,255,0.2)">8k</span>
+          <span style="font-size:7px;color:rgba(255,255,255,0.2)">16k</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Track List -->
-    <div style="flex:1;overflow-y:auto;min-height:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px">
-      <div style="font-size:10px;color:rgba(212,192,215,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">Playlist</div>
+    <div style="flex:1;overflow-y:auto;min-height:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:9px;color:rgba(212,192,215,0.4);font-weight:700;text-transform:uppercase;letter-spacing:0.1em">Playlist</span>
+        <span id="fpTrackCountSmall" style="font-size:9px;color:rgba(212,192,215,0.3)">0 tracks</span>
+      </div>
       <div id="fpTrackList"></div>
     </div>
   </div>
