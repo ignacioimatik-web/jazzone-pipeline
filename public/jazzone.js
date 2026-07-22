@@ -325,7 +325,7 @@ function resetEQ() {
 function toggleEQ() {
   eqOpen = !eqOpen;
   const sec = $('eqSection');
-  if (sec) sec.style.maxHeight = eqOpen ? '120px' : '0';
+  if (sec) sec.style.display = eqOpen ? 'block' : 'none';
   // Highlight button
   const btn = $('eqToggleBtn');
   if (btn) btn.style.color = eqOpen ? 'rgba(168,85,247,0.8)' : 'rgba(255,255,255,0.4)';
@@ -719,10 +719,6 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('.modal-close')) {
     const m = e.target.closest('.modal-overlay');
     if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
-  }
-  // Close full player ONLY on dedicated close button
-  if (e.target.closest('.fp-close-btn')) {
-    closeFullPlayer();
   }
 });
 
