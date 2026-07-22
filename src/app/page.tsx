@@ -15,7 +15,7 @@ export default function HomePage() {
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/original.html")
+    fetch("/index.html")
       .then((r) => r.text())
       .then((html) => {
         if (cancelled || !ref.current) return;
@@ -25,7 +25,7 @@ export default function HomePage() {
         bodyContent = bodyContent.replace(/<script[\s\S]*?<\/script>/gi, "");
         ref.current.innerHTML = bodyContent;
 
-        // Load jazzone.js (DOMContentLoaded already fired, so init manually)
+        // Load jazzone.js
         const script = document.createElement("script");
         script.src = "/jazzone.js";
         script.async = false;

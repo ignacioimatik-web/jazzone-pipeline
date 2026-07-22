@@ -1,0 +1,513 @@
+<body class="font-sans">
+<!-- HEADER: Minimalista con neón pulsante -->
+<header class="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6" style="background:rgba(10,10,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06)">
+  <div class="flex items-center gap-4">
+    <button onclick="switchView('library')" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300 active:scale-90">
+      <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <button onclick="switchView('library')" class="flex items-center gap-2 group">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:shadow-purple-500/50 transition-shadow duration-300">
+        <span class="text-white text-xs font-black tracking-tight">J</span>
+      </div>
+      <span class="text-lg font-bold tracking-tight" style="background:linear-gradient(135deg,#a78bfa,#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent">JazzOne</span>
+    </button>
+  </div>
+  <div class="flex items-center gap-2">
+    <button onclick="rescanNavidrome()" class="w-9 h-9 flex items-center justify-center rounded-xl text-white/40 hover:text-purple-400 hover:bg-white/5 transition-all duration-300 group" title="Rescan">
+      <svg class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+    </button>
+    <button onclick="openLogs()" class="w-9 h-9 flex items-center justify-center rounded-xl text-white/40 hover:text-amber-400 hover:bg-white/5 transition-all duration-300" title="Logs">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    </button>
+    <button id="searchToggleBtn" class="w-9 h-9 flex items-center justify-center rounded-xl text-white/40 hover:text-purple-400 hover:bg-white/5 transition-all duration-300" title="Search">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- SEARCH OVERLAY -->
+<div class="fixed top-16 left-0 right-0 z-40 hidden px-6 py-4" id="searchOverlay" style="background:rgba(10,10,15,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06)">
+  <div class="relative max-w-xl mx-auto">
+    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    <input class="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white/90 placeholder:text-white/30 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all" placeholder="Search your library..." type="search" id="searchInput" autocomplete="off">
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="pt-20 pb-28 px-4 md:px-8 max-w-7xl mx-auto">
+
+  <!-- VIEW: LIBRARY -->
+  <div class="view-section active" id="view-library">
+    <!-- Top Navigation Pills -->
+    <div class="flex items-center gap-1.5 p-1 mb-8 rounded-2xl" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+      <div class="flex items-center gap-1 overflow-x-auto no-scrollbar" id="topNav" role="group">
+        <button class="top-nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-all bg-purple-500/20 text-purple-300 shadow-sm" data-view="library" onclick="switchView('library')">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg> Biblioteca
+        </button>
+        <button class="top-nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-all text-white/40 hover:text-white/70 hover:bg-white/5" data-view="download" onclick="switchView('download')">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Descargar
+        </button>
+        <button class="top-nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-all text-white/40 hover:text-white/70 hover:bg-white/5" data-view="import" onclick="switchView('import')">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V4"/></svg> Importar
+        </button>
+        <button class="top-nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-all text-white/40 hover:text-white/70 hover:bg-white/5" data-view="sources" onclick="switchView('sources')">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Fuentes
+        </button>
+        <button class="top-nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-all text-white/40 hover:text-white/70 hover:bg-white/5" data-view="manage" onclick="switchView('manage')">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Gestionar
+        </button>
+      </div>
+      <div class="relative flex-1 max-w-xs">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input class="w-full bg-transparent border-0 py-2 pl-9 pr-3 text-xs text-white/70 placeholder:text-white/20 outline-none" placeholder="Search..." type="search" id="librarySearchInput" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="relative overflow-hidden rounded-2xl p-5 group" style="background:linear-gradient(135deg,rgba(168,85,247,0.1),rgba(236,72,153,0.05));border:1px solid rgba(168,85,247,0.15)">
+        <div class="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
+            </div>
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-purple-300/70">Colección</span>
+          </div>
+          <span class="text-3xl font-bold text-white" id="statAlbums">—</span>
+          <p class="text-xs text-white/40 mt-1">Álbumes en biblioteca</p>
+        </div>
+      </div>
+      <div class="relative overflow-hidden rounded-2xl p-5 group" style="background:linear-gradient(135deg,rgba(6,182,212,0.1),rgba(52,211,153,0.05));border:1px solid rgba(6,182,212,0.15)">
+        <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+            </div>
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-cyan-300/70">Pistas</span>
+          </div>
+          <span class="text-3xl font-bold text-white" id="statTracks">—</span>
+          <p class="text-xs text-white/40 mt-1">Tracks indexados</p>
+        </div>
+      </div>
+      <div class="relative overflow-hidden rounded-2xl p-5 group" style="background:linear-gradient(135deg,rgba(251,191,36,0.1),rgba(248,113,113,0.05));border:1px solid rgba(251,191,36,0.15)">
+        <div class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div class="relative z-10">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-amber-300/70">Procesos</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-3xl font-bold text-white" id="statActive">0</span>
+            <div class="flex-1 progress-bar" style="height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden">
+              <div class="progress-fill" id="statProgress" style="width:0%;height:100%;background:linear-gradient(90deg,#06b6d4,#a78bfa);border-radius:4px;transition:width 0.5s ease"></div>
+            </div>
+          </div>
+          <p class="text-xs text-white/40 mt-1" id="statActiveName">Inactivo</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Library Header -->
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-white/90 tracking-tight">Biblioteca</h2>
+      <div class="flex items-center gap-2">
+        <button onclick="cleanupStale()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition-all duration-300" title="Limpiar fantasmas">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+        </button>
+        <button onclick="playFirstTrack()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-all duration-300" title="Play first track">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar" id="libraryFilters" role="group">
+      <button class="library-filter px-4 py-2 rounded-xl text-xs font-semibold transition-all bg-purple-500/20 text-purple-300 border border-purple-500/20" data-filter="all" onclick="setLibraryFilter('all', this)">All Music</button>
+      <button class="library-filter px-4 py-2 rounded-xl text-xs font-semibold transition-all bg-white/5 text-white/40 border border-white/10 hover:bg-white/10 hover:text-white/60" data-filter="acid-jazz" onclick="setLibraryFilter('acid-jazz', this)">Acid Jazz</button>
+      <button class="library-filter px-4 py-2 rounded-xl text-xs font-semibold transition-all bg-white/5 text-white/40 border border-white/10 hover:bg-white/10 hover:text-white/60" data-filter="concerts" onclick="setLibraryFilter('concerts', this)">Concerts</button>
+      <button class="library-filter px-4 py-2 rounded-xl text-xs font-semibold transition-all bg-white/5 text-white/40 border border-white/10 hover:bg-white/10 hover:text-white/60" data-filter="instrumental" onclick="setLibraryFilter('instrumental', this)">Instrumental</button>
+    </div>
+
+    <!-- Albums Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3" id="libraryGrid">
+      <div class="col-span-full flex flex-col items-center justify-center py-20">
+        <div class="w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4"></div>
+        <p class="text-sm text-white/30">Cargando biblioteca...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: DOWNLOAD -->
+  <div class="view-section" id="view-download">
+    <div class="max-w-2xl mx-auto">
+      <div class="text-center mb-10">
+        <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center border border-white/10">
+          <svg class="w-8 h-8" style="color:transparent;background:linear-gradient(135deg,#a78bfa,#22d3ee);-webkit-background-clip:text;background-clip:text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <h2 class="text-3xl font-bold text-white/90 mb-2 tracking-tight">Descargar Música</h2>
+        <p class="text-sm text-white/40">Pega un enlace de YouTube — video o lista</p>
+      </div>
+
+      <div class="rounded-2xl p-6 md:p-8 mb-6" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08)">
+        <div class="relative mb-4">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <input class="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm text-white/80 placeholder:text-white/25 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all" placeholder="https://www.youtube.com/playlist?list=..." type="url" id="urlInput" autocomplete="off">
+        </div>
+        <button class="w-full py-4 rounded-xl font-semibold text-sm tracking-wider flex items-center justify-center gap-3 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed shadow-lg" id="startDownload" disabled style="background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;box-shadow:0 0 30px -10px rgba(168,85,247,0.4)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span id="downloadBtnText">Descargar y Segmentar</span>
+        </button>
+        <p class="text-[10px] text-white/20 text-center mt-3">Los tracks de listas se agrupan en un solo álbum</p>
+      </div>
+
+      <!-- Progress -->
+      <div class="hidden rounded-2xl p-6 mb-6" id="progressSection" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08)">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-5 h-5 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+          <span class="text-sm font-medium text-white/80" id="progressMsg">Iniciando...</span>
+        </div>
+        <div class="h-1 bg-white/5 rounded-full overflow-hidden mb-3">
+          <div class="h-full rounded-full transition-all duration-500" id="progressFill" style="width:0%;background:linear-gradient(90deg,#22d3ee,#a78bfa)"></div>
+        </div>
+        <div class="flex flex-wrap gap-2" id="tracksPreview"></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="rounded-2xl p-5 mb-6" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08)">
+        <div class="flex items-center gap-2 mb-4">
+          <svg class="w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span class="text-[10px] font-semibold uppercase tracking-widest text-white/30">Acciones rápidas</span>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <button onclick="cleanupStale()" class="flex items-center gap-2 px-4 py-3 rounded-xl text-xs text-white/50 hover:text-white/80 transition-all" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);hover:background:rgba(255,255,255,0.06)">
+            <svg class="w-4 h-4 text-purple-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            Limpiar
+          </button>
+          <button onclick="rescanNavidrome()" class="flex items-center gap-2 px-4 py-3 rounded-xl text-xs text-white/50 hover:text-white/80 transition-all" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <svg class="w-4 h-4 text-cyan-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Rescan
+          </button>
+          <button onclick="openLogs()" class="flex items-center gap-2 px-4 py-3 rounded-xl text-xs text-white/50 hover:text-white/80 transition-all" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <svg class="w-4 h-4 text-amber-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Logs
+          </button>
+          <button onclick="openManageCleanup()" class="flex items-center gap-2 px-4 py-3 rounded-xl text-xs text-white/50 hover:text-rose-400 transition-all" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)">
+            <svg class="w-4 h-4 text-rose-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Borrar
+          </button>
+        </div>
+      </div>
+
+      <!-- Jobs -->
+      <div class="rounded-2xl p-5" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08)">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-white/30">Procesos</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="loadJobs()" class="text-xs text-white/30 hover:text-purple-400 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+            <button onclick="clearJobs()" class="text-xs text-white/30 hover:text-rose-400 transition-colors flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              Limpiar
+            </button>
+          </div>
+        </div>
+        <div class="space-y-1 max-h-40 overflow-y-auto" id="jobsList">
+          <div class="text-center py-6 text-white/20 text-sm">
+            <svg class="w-8 h-8 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            No hay procesos
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: IMPORT -->
+  <div class="view-section" id="view-import">
+    <div class="max-w-2xl mx-auto">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold text-white/90 tracking-tight">Importar Álbumes</h2>
+      </div>
+      <div class="rounded-2xl p-8 border-2 border-dashed text-center cursor-pointer transition-all hover:border-purple-500/40 hover:bg-white/[0.02]" id="dropZone" style="background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.1)" ondragover="event.preventDefault();this.style.borderColor='rgba(168,85,247,0.5)';this.style.background='rgba(168,85,247,0.05)'" ondragleave="this.style.borderColor='rgba(255,255,255,0.1)';this.style.background=''" ondrop="handleDrop(event)" onclick="document.getElementById('fileInput').click()">
+        <div id="dropZoneContent">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500/10 to-cyan-500/10 flex items-center justify-center border border-white/10">
+            <svg class="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          </div>
+          <p class="text-lg font-semibold text-white/80 mb-1">Subir desde tu Mac</p>
+          <p class="text-sm text-white/40 mb-3">Arrastra una carpeta o haz clic para seleccionar</p>
+          <span class="inline-block text-[10px] text-white/30 bg-white/5 px-3 py-1 rounded-full">mp3 · flac · m4a · ogg · wav · wma · aac · opus</span>
+        </div>
+        <input type="file" id="fileInput" class="hidden" webkitdirectory multiple accept=".mp3,.m4a,.flac,.ogg,.wav,.wma,.aac,.opus" onchange="handleFileSelect(event)">
+        <div class="hidden" id="uploadProgress">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-5 h-5 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+            <span class="text-sm text-white/60" id="uploadStatus">Subiendo...</span>
+          </div>
+          <div class="h-1 bg-white/5 rounded-full overflow-hidden mb-2">
+            <div class="h-full rounded-full transition-all" id="uploadProgressFill" style="width:0%;background:linear-gradient(90deg,#22d3ee,#a78bfa)"></div>
+          </div>
+          <p class="text-xs text-white/40" id="uploadProgressMsg">Preparando...</p>
+          <div class="mt-3 flex flex-wrap gap-2" id="uploadFileList"></div>
+        </div>
+      </div>
+      <div class="hidden mt-6" id="uploadResults">
+        <div class="rounded-2xl p-6" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08)">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-white/80" id="resultTitle">Importación completa</p>
+              <p class="text-xs text-white/40" id="resultDetail"></p>
+            </div>
+          </div>
+          <div class="mt-3 text-xs text-white/40" id="resultErrors"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: SOURCES -->
+  <div class="view-section" id="view-sources">
+    <div class="max-w-2xl mx-auto">
+      <div class="text-center mb-10">
+        <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-purple-500/20 to-amber-500/20 flex items-center justify-center border border-white/10">
+          <svg class="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h2 class="text-3xl font-bold text-white/90 mb-2 tracking-tight">Fuentes de Audio</h2>
+        <p class="text-sm text-white/40">Elige de dónde añadir música</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- YouTube -->
+        <div class="rounded-2xl p-5 transition-all hover:border-purple-500/30 group" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06)">
+          <div class="flex items-start gap-4 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm font-semibold text-white/80">YouTube</h3>
+              <p class="text-xs text-white/40 mt-1">Videos, listas y mixes con selección previa.</p>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="window.open('https://youtube.com','_blank')" class="flex-1 px-3 py-2 rounded-xl bg-red-500/10 text-red-300 text-[10px] font-semibold uppercase tracking-wider hover:bg-red-500/20 transition-all">Abrir</button>
+            <button onclick="switchView('download')" class="flex-1 px-3 py-2 rounded-xl bg-white/5 text-white/40 text-[10px] font-semibold uppercase tracking-wider hover:text-white/60 hover:bg-white/10 transition-all">Descargar</button>
+          </div>
+        </div>
+        <!-- SoundCloud -->
+        <div class="rounded-2xl p-5 transition-all hover:border-orange-500/30 group" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06)">
+          <div class="flex items-start gap-4 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 24 24"><path d="M11.56 8.87v8.64c0 .16.11.28.28.28h1.7c.16 0 .29-.12.29-.28V8.87c0-.16-.13-.28-.3-.28h-1.7c-.16 0-.27.12-.27.28zm-3.9 2.1v6.54c0 .16.12.28.28.28h1.7c.16 0 .28-.12.28-.28V10.97c0-.16-.12-.28-.28-.28H7.94c-.16 0-.28.12-.28.28zm7.52 1.3v5.24c0 .15.12.27.28.27h1.7c.15 0 .27-.12.27-.27v-5.24c0-.15-.12-.27-.27-.27h-1.7c-.16 0-.28.12-.28.27z"/><path d="M21.84 11.05c-1.1-4.97-5.7-8.1-11.02-6.48-4.12 1.25-6.9 5.1-6.75 9.38l.07 2.94c.02.45.38.8.83.8H20.2c.98 0 1.8-.8 1.8-1.78v-2.16c.1-.9-.05-1.8-.16-2.7z"/></svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm font-semibold text-white/80">SoundCloud</h3>
+              <p class="text-xs text-white/40 mt-1">Tracks y sets. Pega el enlace en Descargar.</p>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="window.open('https://soundcloud.com','_blank')" class="flex-1 px-3 py-2 rounded-xl bg-orange-500/10 text-orange-300 text-[10px] font-semibold uppercase tracking-wider hover:bg-orange-500/20 transition-all">Abrir</button>
+            <button onclick="switchView('download')" class="flex-1 px-3 py-2 rounded-xl bg-white/5 text-white/40 text-[10px] font-semibold uppercase tracking-wider hover:text-white/60 hover:bg-white/10 transition-all">Descargar</button>
+          </div>
+        </div>
+        <!-- Bandcamp -->
+        <div class="rounded-2xl p-5 transition-all hover:border-emerald-500/30 group" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06)">
+          <div class="flex items-start gap-4 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm font-semibold text-white/80">Bandcamp</h3>
+              <p class="text-xs text-white/40 mt-1">Álbumes y tracks. Pega el enlace en Descargar.</p>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="window.open('https://bandcamp.com','_blank')" class="flex-1 px-3 py-2 rounded-xl bg-emerald-500/10 text-emerald-300 text-[10px] font-semibold uppercase tracking-wider hover:bg-emerald-500/20 transition-all">Abrir</button>
+            <button onclick="switchView('download')" class="flex-1 px-3 py-2 rounded-xl bg-white/5 text-white/40 text-[10px] font-semibold uppercase tracking-wider hover:text-white/60 hover:bg-white/10 transition-all">Descargar</button>
+          </div>
+        </div>
+        <!-- URL Directa -->
+        <div class="rounded-2xl p-5 transition-all hover:border-blue-500/30 group" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06)">
+          <div class="flex items-start gap-4 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm font-semibold text-white/80">URL Directa</h3>
+              <p class="text-xs text-white/40 mt-1">Enlace directo a MP3, M4A, FLAC.</p>
+            </div>
+          </div>
+          <button onclick="switchView('download')" class="w-full px-3 py-2 rounded-xl bg-white/5 text-white/40 text-[10px] font-semibold uppercase tracking-wider hover:text-white/60 hover:bg-white/10 transition-all">Ir a Descargar</button>
+        </div>
+        <!-- Subir archivos -->
+        <div class="rounded-2xl p-5 transition-all hover:border-cyan-500/30 group" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06)">
+          <div class="flex items-start gap-4 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm font-semibold text-white/80">Subir archivos</h3>
+              <p class="text-xs text-white/40 mt-1">Arrastra carpetas desde tu Mac.</p>
+            </div>
+          </div>
+          <button onclick="switchView('import')" class="w-full px-3 py-2 rounded-xl bg-cyan-500/10 text-cyan-300 text-[10px] font-semibold uppercase tracking-wider hover:bg-cyan-500/20 transition-all">Importar</button>
+        </div>
+        <!-- NAS -->
+        <div class="rounded-2xl p-5 transition-all hover:border-violet-500/30 group" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06)">
+          <div class="flex items-start gap-4 mb-3">
+            <div class="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-sm font-semibold text-white/80">NAS / Synology</h3>
+              <p class="text-xs text-white/40 mt-1">Explora carpetas del NAS.</p>
+            </div>
+          </div>
+          <button onclick="switchView('import')" class="w-full px-3 py-2 rounded-xl bg-white/5 text-white/40 text-[10px] font-semibold uppercase tracking-wider hover:text-white/60 hover:bg-white/10 transition-all">Importar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: MANAGE -->
+  <div class="view-section" id="view-manage">
+    <div class="max-w-2xl mx-auto">
+      <div class="text-center mb-10">
+        <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-purple-500/20 to-rose-500/20 flex items-center justify-center border border-white/10">
+          <svg class="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <h2 class="text-3xl font-bold text-white/90 mb-2 tracking-tight">Gestionar Biblioteca</h2>
+        <p class="text-sm text-white/40">Mantenimiento, limpieza y gestión</p>
+      </div>
+
+      <!-- Mantenimiento -->
+      <div class="rounded-2xl p-6 mb-4" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08)">
+        <h3 class="text-sm font-semibold text-white/70 mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Mantenimiento
+        </h3>
+        <div class="space-y-2">
+          <button onclick="cleanupStale()" class="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06)">
+            <svg class="w-5 h-5 text-purple-400/60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            <div class="text-left"><strong class="text-sm text-white/80">Limpiar Fantasmas</strong><br><span class="text-[10px] text-white/30">Elimina registros huérfanos</span></div>
+          </button>
+          <button onclick="rescanNavidrome()" class="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06)">
+            <svg class="w-5 h-5 text-cyan-400/60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <div class="text-left"><strong class="text-sm text-white/80">Rescanear Navidrome</strong><br><span class="text-[10px] text-white/30">Fuerza escaneo completo</span></div>
+          </button>
+          <button onclick="openLogs()" class="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06)">
+            <svg class="w-5 h-5 text-amber-400/60 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <div class="text-left"><strong class="text-sm text-white/80">Ver Logs</strong><br><span class="text-[10px] text-white/30">Últimas líneas del registro</span></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Borrar Álbumes -->
+      <div class="rounded-2xl p-6 mb-4" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08)">
+        <h3 class="text-sm font-semibold text-white/70 mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Borrar Álbumes
+        </h3>
+        <div class="relative mb-4">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input class="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white/60 placeholder:text-white/20 outline-none focus:border-rose-500/50 transition-all" placeholder="Buscar álbum..." type="search" id="deleteSearchInput" autocomplete="off" oninput="filterDeleteList(this.value)">
+        </div>
+        <p class="text-xs text-white/30 mb-4">Haz clic en un álbum para borrarlo</p>
+        <div class="max-h-48 overflow-y-auto space-y-1" id="deleteAlbumList">
+          <div class="text-center py-6"><div class="w-6 h-6 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto"></div></div>
+        </div>
+      </div>
+
+      <!-- Sistema -->
+      <div class="rounded-2xl p-6" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08)">
+        <h3 class="text-sm font-semibold text-white/70 mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Sistema
+        </h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-xl px-4 py-3" style="background:rgba(255,255,255,0.03)"><span class="text-[10px] text-white/30 uppercase tracking-wider">Pipeline</span><p class="text-sm font-semibold text-white/80" id="sysVersion">v1.2.0</p></div>
+          <div class="rounded-xl px-4 py-3" style="background:rgba(255,255,255,0.03)"><span class="text-[10px] text-white/30 uppercase tracking-wider">Álbumes</span><p class="text-sm font-semibold text-white/80" id="sysAlbums">—</p></div>
+          <div class="rounded-xl px-4 py-3" style="background:rgba(255,255,255,0.03)"><span class="text-[10px] text-white/30 uppercase tracking-wider">Pistas</span><p class="text-sm font-semibold text-white/80" id="sysTracks">—</p></div>
+          <div class="rounded-xl px-4 py-3" style="background:rgba(255,255,255,0.03)"><span class="text-[10px] text-white/30 uppercase tracking-wider">Navidrome</span><p class="text-sm font-semibold text-white/80" id="sysNavidrome">—</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV: Dock style -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-4 pt-2" style="pointer-events:none">
+  <div class="flex items-center gap-1 px-2 py-2 rounded-2xl" style="background:rgba(10,10,15,0.8);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.08);pointer-events:auto;box-shadow:0 10px 40px -10px rgba(0,0,0,0.5)">
+    <button class="nav-tab flex flex-col items-center justify-center w-14 py-2 rounded-xl transition-all duration-200 text-purple-400" data-view="library" onclick="switchView('library')">
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
+      <span class="text-[8px] font-semibold mt-0.5 uppercase tracking-widest">Library</span>
+    </button>
+    <button class="nav-tab flex flex-col items-center justify-center w-14 py-2 rounded-xl transition-all duration-200 text-white/40 hover:text-white/70" data-view="download" onclick="switchView('download')">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <span class="text-[8px] font-semibold mt-0.5 uppercase tracking-widest">Download</span>
+    </button>
+    <button class="nav-tab flex flex-col items-center justify-center w-14 py-2 rounded-xl transition-all duration-200 text-white/40 hover:text-white/70" data-view="sources" onclick="switchView('sources')">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span class="text-[8px] font-semibold mt-0.5 uppercase tracking-widest">Sources</span>
+    </button>
+    <button class="nav-tab flex flex-col items-center justify-center w-14 py-2 rounded-xl transition-all duration-200 text-white/40 hover:text-white/70" data-view="import" onclick="switchView('import')">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V4"/></svg>
+      <span class="text-[8px] font-semibold mt-0.5 uppercase tracking-widest">Import</span>
+    </button>
+    <button class="nav-tab flex flex-col items-center justify-center w-14 py-2 rounded-xl transition-all duration-200 text-white/40 hover:text-white/70" data-view="manage" onclick="switchView('manage')">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="text-[8px] font-semibold mt-0.5 uppercase tracking-widest">Manage</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ALBUM MODAL -->
+<div class="fixed inset-0 z-50 hidden items-end justify-center" id="albumModal" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(24px)">
+  <div class="w-full max-h-[85vh] rounded-t-2xl overflow-y-auto px-4 md:px-8 py-6 pb-8" style="background:#0f0f14;border:1px solid rgba(255,255,255,0.08)">
+    <div class="flex justify-end mb-4">
+      <button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-white/70 transition-all">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="albumDetail"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- LOG MODAL -->
+<div class="fixed inset-0 z-50 hidden items-end justify-center" id="logModal" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(24px)">
+  <div class="w-full max-h-[85vh] rounded-t-2xl overflow-y-auto px-4 md:px-8 py-6 pb-8" style="background:#0f0f14;border:1px solid rgba(255,255,255,0.08)">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-sm font-semibold text-white/80 flex items-center gap-2">
+        <svg class="w-4 h-4 text-rose-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Pipeline Logs
+      </h2>
+      <div class="flex items-center gap-2">
+        <button onclick="refreshLogs()" class="text-xs text-white/30 hover:text-purple-400 px-3 py-1 rounded-lg bg-white/5 transition-all">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
+        <button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-white/70 transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="logContent" class="bg-black/40 border border-white/5 rounded-xl p-4 font-mono text-[11px] leading-relaxed max-h-[60vh] overflow-y-auto whitespace-pre-wrap text-white/50"></div>
+  </div>
+</div>
+
+<!-- MINI PLAYER -->
+<div class="fixed bottom-20 left-0 right-0 z-40 hidden items-center gap-3 px-4 py-3 mx-4 rounded-2xl" id="miniPlayer" style="background:rgba(10,10,15,0.9);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);max-width:500px;margin:0 auto">
+  <div class="flex-1 min-w-0">
+    <strong class="block text-sm font-semibold truncate text-white/80" id="playerTrackName">Track</strong>
+    <span class="text-xs text-white/40 truncate block" id="playerAlbumName">Album</span>
+  </div>
+  <audio id="audioPlayer" controls class="h-8 flex-shrink-0 rounded-lg" style="filter:invert(0.9)"></audio>
+</div>
+
+</body>
