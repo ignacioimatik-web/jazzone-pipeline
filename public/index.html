@@ -505,13 +505,95 @@
   </div>
 </div>
 
-<!-- MINI PLAYER -->
-<div class="fixed bottom-20 left-0 right-0 z-40 hidden items-center gap-3 px-4 py-3 mx-4 rounded-2xl" id="miniPlayer" style="background:rgba(10,10,15,0.9);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);max-width:500px;margin:0 auto">
-  <div class="flex-1 min-w-0">
-    <strong class="block text-sm font-semibold truncate text-white/80" id="playerTrackName">Track</strong>
-    <span class="text-xs text-white/40 truncate block" id="playerAlbumName">Album</span>
+<!-- FULL PLAYER OVERLAY -->
+<div class="fixed inset-0 z-50 hidden flex-col" id="fullPlayerOverlay" style="background:rgba(10,10,15,0.96);backdrop-filter:blur(40px)">
+  <div class="full-player-content" style="flex:1;display:flex;flex-direction:column;max-width:480px;margin:0 auto;width:100%;padding:24px 16px;overflow:hidden">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-shrink:0">
+      <button onclick="closeFullPlayer()" class="w-9 h-9 flex items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/5 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+      <span class="text-[10px] font-semibold uppercase tracking-widest text-white/30" id="fpTrackCount">— of —</span>
+      <div class="w-9 h-9"></div>
+    </div>
+
+    <!-- Album Art -->
+    <div style="width:100%;aspect-ratio:1;max-width:360px;margin:0 auto 20px;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(168,85,247,0.25);flex-shrink:0">
+      <img id="fpAlbumArt" src="" alt="Album art" style="width:100%;height:100%;object-fit:cover"
+        onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'><rect fill=\'%23222\' width=\'200\' height=\'200\'/><text x=\'50%\' y=\'50%\' text-anchor=\'middle\' font-size=\'60\'>🎵</text></svg>'">
+    </div>
+
+    <!-- Track Info -->
+    <div style="text-align:center;flex-shrink:0;margin-bottom:16px">
+      <div style="font-size:18px;font-weight:700;color:#e5e2e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="fpTrackName">No track</div>
+      <div style="font-size:13px;color:#d4c0d7;margin-top:4px" id="fpAlbumName">—</div>
+    </div>
+
+    <!-- Seek Bar -->
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;margin-bottom:16px">
+      <span style="font-size:11px;color:#d4c0d7;font-family:monospace;min-width:32px" id="playerCurrentTime">--:--</span>
+      <div style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:4px;cursor:pointer;position:relative" onclick="seekTrack(event.offsetX / this.offsetWidth * (document.getElementById('audioPlayer').duration || 0))">
+        <div style="height:100%;background:linear-gradient(90deg,#a78bfa,#e879f9);border-radius:4px;width:0%;transition:width 0.3s linear" id="fpSeekFill"></div>
+      </div>
+      <span style="font-size:11px;color:#d4c0d7;font-family:monospace;min-width:32px" id="playerTotalTime">--:--</span>
+    </div>
+
+    <!-- Controls -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:32px;flex-shrink:0;margin-bottom:24px">
+      <button onclick="prevTrack()" class="w-11 h-11 flex items-center justify-center rounded-full text-white/50 hover:text-white/70 transition-all">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M6.704 4.711a.75.75 0 01.78.062 3.236 3.236 0 001.266.785A3.25 3.25 0 0010 5.75c.78 0 1.5.22 2.11.59a.75.75 0 01.28.316l4.406 10.555a.75.75 0 01-.375.97.75.75 0 01-.541.053 7.73 7.73 0 00-5.88 0 .75.75 0 01-.54-.053.75.75 0 01-.376-.97l2.784-6.668A1.5 1.5 0 0010 9.25c-.476 0-.936.092-1.36.273a3.25 3.25 0 00-1.266.785.75.75 0 01-.78.063.75.75 0 01-.468-.574l-.37-2.087a2.513 2.513 0 01-.088-.635c0-.435.09-.87.256-1.265a.75.75 0 01.78-.404z"/><path d="M4.03 5.273a.75.75 0 011.025.275c.21.365.506.647.86.82a3.25 3.25 0 001.266.785c.3.103.621.16.944.169v1.948a1.5 1.5 0 00-.715 1.572l2.785 6.668a.75.75 0 01-.917 1.027 9.23 9.23 0 00-2.56-.666l-.178-.09a.75.75 0 01-.374-.52.75.75 0 01.17-.62c.23-.273.497-.512.796-.712a.75.75 0 01.574-.093.75.75 0 01.435.342l.62.373a7.74 7.74 0 012.828-.89l.036-.088-.348-.832A.75.75 0 0011 11.25V8.764c-.19-.029-.376-.076-.56-.14a4.75 4.75 0 01-1.85-1.145.75.75 0 01-.44-.646l-.043-.341A.75.75 0 018.5 6.25h-1.5a.75.75 0 01-.432-.14.75.75 0 01-.294-.574l-.036-.36a.75.75 0 01.792-.803z"/></svg>
+      </button>
+      <button id="fpPlayBtn" onclick="const a=document.getElementById('audioPlayer');if(!a)return;if(a.paused)a.play().catch(()=>{});else a.pause()" style="width:64px;height:64px;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(168,85,247,0.4);transition:all 0.2s">
+        <span id="fpPlayIcon"><svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg></span>
+      </button>
+      <button onclick="nextTrack()" class="w-11 h-11 flex items-center justify-center rounded-full text-white/50 hover:text-white/70 transition-all">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M13.296 4.711a.75.75 0 00-.78.062 3.236 3.236 0 01-1.266.785A3.25 3.25 0 0010 5.75c-.78 0-1.5.22-2.11.59a.75.75 0 00-.28.316l-4.406 10.555a.75.75 0 00.375.97.75.75 0 00.541.053 7.73 7.73 0 015.88 0 .75.75 0 00.54-.053.75.75 0 00.376-.97l-2.784-6.668A1.5 1.5 0 0010 9.25c.476 0 .936.092 1.36.273a3.25 3.25 0 011.266.785.75.75 0 00.78.063.75.75 0 00.468-.574l.37-2.087c.057-.207.088-.42.088-.635 0-.435-.09-.87-.256-1.265a.75.75 0 00-.78-.404z"/><path d="M15.97 5.273a.75.75 0 00-1.025.275c-.21.365-.506.647-.86.82a3.25 3.25 0 01-1.266.785c-.3.103-.621.16-.944.169v1.948a1.5 1.5 0 01.715 1.572l-2.785 6.668a.75.75 0 00.917 1.027 9.23 9.23 0 012.56-.666l.178-.09a.75.75 0 00.374-.52.75.75 0 00-.17-.62 3.236 3.236 0 00-.796-.712.75.75 0 00-.574-.093.75.75 0 00-.435.342l-.62.373a7.74 7.74 0 01-2.828.89l-.036-.088.348-.832A.75.75 0 009 11.25V8.764c.19-.029.376-.076.56-.14a4.75 4.75 0 001.85-1.145.75.75 0 00.44-.646l.043-.341A.75.75 0 0011.5 6.25h1.5a.75.75 0 00.432-.14.75.75 0 00.294-.574l.036-.36a.75.75 0 00-.792-.803z"/></svg>
+      </button>
+    </div>
+
+    <!-- Track List -->
+    <div style="flex:1;overflow-y:auto;min-height:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px">
+      <div style="font-size:10px;color:#d4c0d7;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">Tracklist</div>
+      <div id="fpTrackList"></div>
+    </div>
   </div>
-  <audio id="audioPlayer" controls class="h-8 flex-shrink-0 rounded-lg" style="filter:invert(0.9)"></audio>
 </div>
+
+<!-- ENHANCED MINI PLAYER -->
+<div class="fixed bottom-20 left-0 right-0 z-40 hidden" id="miniPlayer" style="display:none;pointer-events:none">
+  <div style="pointer-events:auto;max-width:500px;margin:0 auto;padding:0 12px">
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(10,10,15,0.95);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:14px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden">
+      <!-- Seek bar at top -->
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,0.06);border-radius:14px 14px 0 0;overflow:hidden">
+        <div id="miniSeekFill" style="height:100%;background:linear-gradient(90deg,#a78bfa,#e879f9);width:0%;transition:width 0.3s linear"></div>
+      </div>
+      <!-- Album art -->
+      <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0">
+        <img id="miniAlbumArt" src="" alt="" style="width:100%;height:100%;object-fit:cover"
+          onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 40 40\'><rect fill=\'%23333\' width=\'40\' height=\'40\'/><text x=\'50%\' y=\'55%\' text-anchor=\'middle\' font-size=\'20\'>🎵</text></svg>'">
+      </div>
+      <!-- Track info -->
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:#e5e2e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="playerTrackName">Track</div>
+        <div style="font-size:11px;color:#d4c0d7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="playerAlbumName">Album</div>
+      </div>
+      <!-- Controls -->
+      <div class="no-click" style="display:flex;align-items:center;gap:2px;flex-shrink:0">
+        <button onclick="event.stopPropagation();prevTrack()" class="w-8 h-8 flex items-center justify-center rounded-full text-white/40 hover:text-white/70 transition-all">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6.704 4.711a.75.75 0 01.78.062 3.236 3.236 0 001.266.785A3.25 3.25 0 0010 5.75c.78 0 1.5.22 2.11.59a.75.75 0 01.28.316l4.406 10.555a.75.75 0 01-.375.97.75.75 0 01-.541.053 7.73 7.73 0 00-5.88 0 .75.75 0 01-.54-.053.75.75 0 01-.376-.97l2.784-6.668A1.5 1.5 0 0010 9.25c-.476 0-.936.092-1.36.273a3.25 3.25 0 00-1.266.785.75.75 0 01-.78.063.75.75 0 01-.468-.574l-.37-2.087a2.513 2.513 0 01-.088-.635c0-.435.09-.87.256-1.265a.75.75 0 01.78-.404z"/><path d="M4.03 5.273a.75.75 0 011.025.275c.21.365.506.647.86.82a3.25 3.25 0 001.266.785c.3.103.621.16.944.169v1.948a1.5 1.5 0 00-.715 1.572l2.785 6.668a.75.75 0 01-.917 1.027 9.23 9.23 0 00-2.56-.666l-.178-.09a.75.75 0 01-.374-.52.75.75 0 01.17-.62c.23-.273.497-.512.796-.712a.75.75 0 01.574-.093.75.75 0 01.435.342l.62.373a7.74 7.74 0 012.828-.89l.036-.088-.348-.832A.75.75 0 0011 11.25V8.764c-.19-.029-.376-.076-.56-.14a4.75 4.75 0 01-1.85-1.145.75.75 0 01-.44-.646l-.043-.341A.75.75 0 018.5 6.25h-1.5a.75.75 0 01-.432-.14.75.75 0 01-.294-.574l-.036-.36a.75.75 0 01.792-.803z"/></svg>
+        </button>
+        <button onclick="event.stopPropagation();const a=document.getElementById('audioPlayer');if(!a)return;if(a.paused)a.play().catch(()=>{});else a.pause()" style="width:34px;height:34px;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;transition:all 0.2s">
+          <span id="miniPlayerPlayIcon"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg></span>
+        </button>
+        <button onclick="event.stopPropagation();nextTrack()" class="w-8 h-8 flex items-center justify-center rounded-full text-white/40 hover:text-white/70 transition-all">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M13.296 4.711a.75.75 0 00-.78.062 3.236 3.236 0 01-1.266.785A3.25 3.25 0 0010 5.75c-.78 0-1.5.22-2.11.59a.75.75 0 00-.28.316l-4.406 10.555a.75.75 0 00.375.97.75.75 0 00.541.053 7.73 7.73 0 015.88 0 .75.75 0 00.54-.053.75.75 0 00.376-.97l-2.784-6.668A1.5 1.5 0 0010 9.25c.476 0 .936.092 1.36.273a3.25 3.25 0 011.266.785.75.75 0 00.78.063.75.75 0 00.468-.574l.37-2.087c.057-.207.088-.42.088-.635 0-.435-.09-.87-.256-1.265a.75.75 0 00-.78-.404z"/><path d="M15.97 5.273a.75.75 0 00-1.025.275c-.21.365-.506.647-.86.82a3.25 3.25 0 01-1.266.785c-.3.103-.621.16-.944.169v1.948a1.5 1.5 0 01.715 1.572l-2.785 6.668a.75.75 0 00.917 1.027 9.23 9.23 0 012.56-.666l.178-.09a.75.75 0 00.374-.52.75.75 0 00-.17-.62 3.236 3.236 0 00-.796-.712.75.75 0 00-.574-.093.75.75 0 00-.435.342l-.62.373a7.74 7.74 0 01-2.828.89l-.036-.088.348-.832A.75.75 0 009 11.25V8.764c.19-.029.376-.076.56-.14a4.75 4.75 0 001.85-1.145.75.75 0 00.44-.646l.043-.341A.75.75 0 0011.5 6.25h1.5a.75.75 0 00.432-.14.75.75 0 00.294-.574l.036-.36a.75.75 0 00-.792-.803z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden Audio Element -->
+<audio id="audioPlayer" preload="auto" style="width:0;height:0;opacity:0;position:absolute;pointer-events:none"></audio>
 
 </body>
