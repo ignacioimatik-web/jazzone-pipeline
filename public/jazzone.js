@@ -233,6 +233,215 @@ function drawViz() {
   vizAnimId = requestAnimationFrame(drawViz);
 }
 
+// ============ PARTY MODE (luces de fiesta) ============
+let partyActive = false;
+let partyAnimId = null;
+let partyCanvas = null;
+let partyTime = 0;
+
+function toggleParty() {
+  partyActive = !partyActive;
+  const canvas = $('partyCanvas');
+  if (!canvas) return;
+  const btn = $('partyToggleBtn');
+  
+  if (partyActive) {
+    canvas.style.opacity = '1';
+    if (btn) btn.style.color = '#ff4444';
+    partyCanvas = canvas;
+    // Size canvas
+    canvas.width = canvas.offsetWidth || window.innerWidth;
+    canvas.height = canvas.offsetHeight || window.innerHeight;
+    startParty();
+    showToast('🎉 Fiesta ON');
+  } else {
+    canvas.style.opacity = '0';
+    if (btn) btn.style.color = 'rgba(255,255,255,0.4)';
+    stopParty();
+    showToast('Fiesta OFF');
+  }
+}
+
+function startParty() {
+  if (partyAnimId) return;
+  drawParty();
+}
+
+function stopParty() {
+  if (partyAnimId) { cancelAnimationFrame(partyAnimId); partyAnimId = null; }
+  const canvas = partyCanvas;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function getAudioEnergy() {
+  // Get overall energy from the analyser
+  if (!vizAnalyser) return { bass: 0, mid: 0, high: 0, overall: 0 };
+  try {
+    const bufferLength = vizAnalyser.frequencyBinCount;
+    const data = new Uint8Array(bufferLength);
+    vizAnalyser.getByteFrequencyData(data);
+    
+    let bassSum = 0, midSum = 0, highSum = 0;
+    const bassCount = Math.floor(bufferLength * 0.1);
+    const midCount = Math.floor(bufferLength * 0.3);
+    
+    for (let i = 0; i < bassCount; i++) bassSum += data[i] || 0;
+    for (let i = bassCount; i < bassCount + midCount; i++) midSum += data[i] || 0;
+    for (let i = bassCount + midCount; i < bufferLength; i++) highSum += data[i] || 0;
+    
+    const bass = bassSum / (bassCount * 255);
+    const mid = midSum / (midCount * 255);
+    const high = highSum / ((bufferLength - bassCount - midCount) * 255);
+    const overall = (bass + mid + high) / 3;
+    
+    return { bass, mid, high, overall };
+  } catch(e) {
+    return { bass: 0, mid: 0, high: 0, overall: 0 };
+  }
+}
+
+function drawParty() {
+  const canvas = partyCanvas;
+  if (!canvas) { partyAnimId = null; return; }
+  
+  // Resize if needed
+  if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+    canvas.width = canvas.clientWidth || window.innerWidth;
+    canvas.height = canvas.clientHeight || window.innerHeight;
+  }
+  
+  const ctx = canvas.getContext('2d');
+  if (!ctx) { partyAnimId = null; return; }
+  
+  const w = canvas.width;
+  const h = canvas.height;
+  const energy = getAudioEnergy();
+  const bass = energy.bass;
+  const mid = energy.mid;
+  const high = energy.high;
+  const overall = energy.overall;
+  
+  partyTime += 0.02;
+  
+  // Clear with slight trail for motion blur
+  ctx.globalAlpha = 0.85;
+  ctx.fillStyle = 'rgba(10,10,15,0.15)';
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalAlpha = 1;
+  
+  // === 1. PULSING BEAMS (spokes from center) ===
+  const beamCount = 16;
+  const beamStrength = Math.max(0.1, bass * 1.5);
+  const cx = w / 2;
+  const cy = h / 2;
+  const maxRadius = Math.max(w, h) * 0.8;
+  
+  for (let i = 0; i < beamCount; i++) {
+    const angle = (i / beamCount) * Math.PI * 2 + partyTime * (0.2 + bass * 0.5);
+    const pulse = Math.sin(partyTime * 3 + i * 1.5) * 0.3 + 0.7;
+    const length = maxRadius * (0.3 + beamStrength * 0.7) * pulse;
+    
+    // Color based on position and energy
+    const hue = (i / beamCount) * 360 + partyTime * 50;
+    const sat = 80 + mid * 20;
+    const light = 40 + beamStrength * 40;
+    const alpha = 0.1 + beamStrength * 0.3;
+    
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    const endX = cx + Math.cos(angle) * length;
+    const endY = cy + Math.sin(angle) * length;
+    ctx.lineTo(endX, endY);
+    ctx.strokeStyle = `hsla(${hue}, ${sat}%, ${light}%, ${alpha})`;
+    ctx.lineWidth = 1.5 + beamStrength * 4;
+    ctx.stroke();
+    
+    // Mirror beam (opposite side)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx - Math.cos(angle) * length, cy - Math.sin(angle) * length);
+    ctx.strokeStyle = `hsla(${(hue + 180) % 360}, ${sat}%, ${light}%, ${alpha * 0.7})`;
+    ctx.stroke();
+  }
+  
+  // === 2. STROBE BORDER EFFECT ===
+  const borderIntensity = Math.max(0, bass - 0.15) * 2;
+  if (borderIntensity > 0.05) {
+    const hue1 = (partyTime * 80) % 360;
+    const hue2 = (partyTime * 80 + 120) % 360;
+    const borderWidth = 2 + borderIntensity * 8;
+    
+    // Top border
+    const grad1 = ctx.createLinearGradient(0, 0, w, 0);
+    grad1.addColorStop(0, `hsla(${hue1}, 100%, 60%, ${borderIntensity * 0.6})`);
+    grad1.addColorStop(0.5, `hsla(${hue2}, 100%, 50%, ${borderIntensity * 0.4})`);
+    grad1.addColorStop(1, `hsla(${(hue1 + 60) % 360}, 100%, 60%, ${borderIntensity * 0.6})`);
+    ctx.fillStyle = grad1;
+    ctx.fillRect(0, 0, w, borderWidth);
+    
+    // Bottom border
+    ctx.fillRect(0, h - borderWidth, w, borderWidth);
+    
+    // Left border
+    const grad2 = ctx.createLinearGradient(0, 0, 0, h);
+    grad2.addColorStop(0, `hsla(${(hue1 + 180) % 360}, 100%, 60%, ${borderIntensity * 0.5})`);
+    grad2.addColorStop(0.5, `hsla(${(hue2 + 180) % 360}, 100%, 50%, ${borderIntensity * 0.3})`);
+    grad2.addColorStop(1, `hsla(${(hue1 + 240) % 360}, 100%, 60%, ${borderIntensity * 0.5})`);
+    ctx.fillStyle = grad2;
+    ctx.fillRect(0, 0, borderWidth, h);
+    ctx.fillRect(w - borderWidth, 0, borderWidth, h);
+    
+    // Corner glows
+    const glowSize = 30 + borderIntensity * 40;
+    [0, w, 0, w].forEach((x, i) => {
+      const y = i < 2 ? 0 : h;
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, glowSize);
+      grad.addColorStop(0, `hsla(${hue1 + i * 60}, 100%, 60%, ${borderIntensity * 0.4})`);
+      grad.addColorStop(1, 'rgba(10,10,15,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(x - glowSize, y - glowSize, glowSize * 2, glowSize * 2);
+    });
+  }
+  
+  // === 3. SPARKLE PARTICLES (high frequencies) ===
+  const sparkleCount = Math.floor(high * 30);
+  for (let i = 0; i < sparkleCount; i++) {
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    const size = 1 + Math.random() * 2;
+    const hue = Math.random() * 360;
+    const alpha = 0.3 + Math.random() * 0.5;
+    ctx.fillStyle = `hsla(${hue}, 100%, 70%, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // === 4. RHYTHMIC COLOR WASH (background tint) ===
+  if (overall > 0.05) {
+    const washHue = (partyTime * 30) % 360;
+    const washAlpha = overall * 0.06;
+    ctx.fillStyle = `hsla(${washHue}, 80%, 50%, ${washAlpha})`;
+    ctx.fillRect(0, 0, w, h);
+  }
+  
+  // === 5. BASS PULSE RING ===
+  if (bass > 0.2) {
+    const ringRadius = 20 + bass * 150;
+    const ringAlpha = (bass - 0.2) * 0.5;
+    const hue = (partyTime * 40) % 360;
+    ctx.beginPath();
+    ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${hue}, 100%, 60%, ${ringAlpha})`;
+    ctx.lineWidth = 2 + bass * 6;
+    ctx.stroke();
+  }
+  
+  partyAnimId = requestAnimationFrame(drawParty);
+}
+
 // ============ EQUALIZER ============
 let eqFilters = [];
 let eqOpen = false;
@@ -639,6 +848,8 @@ function closeFullPlayer() {
   player.isFullScreen = false;
   const ov = $('fullPlayerOverlay');
   if (ov) { ov.classList.add('hidden'); ov.classList.remove('flex'); }
+  // Stop party mode when closing player
+  if (partyActive) toggleParty();
 }
 
 function updatePlayerUI() {
