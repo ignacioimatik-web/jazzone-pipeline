@@ -62,6 +62,8 @@ function playAlbum(encodedName) {
   const name = decodeURIComponent(encodedName);
   const album = libraryCache?.find(a => a.name === name);
   if (!album) { showToast('Album not found'); return; }
+  // Resume AudioContext on user gesture (fixes autoplay policy)
+  if (vizCtx && vizCtx.state === 'suspended') vizCtx.resume();
   // Toggle pause if already playing this album
   const audio = $('audioPlayer');
   if (player.album === encodedName && player.tracks.length > 0 && player.isPlaying) {
@@ -1101,6 +1103,8 @@ function updateAlbumModalTrackList() {
 }
 
 function playAlbumTrackFromModal(encodedName, index) {
+  // Resume AudioContext on user gesture
+  if (vizCtx && vizCtx.state === 'suspended') vizCtx.resume();
   // If it's a different album, load it first
   if (player.album !== encodedName) { playAlbumTracks(encodedName, index); return; }
   if (index >= 0 && index < player.tracks.length) { player.currentIndex = index; playCurrentTrack(); }
