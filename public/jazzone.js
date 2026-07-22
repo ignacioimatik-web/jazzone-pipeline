@@ -688,9 +688,6 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('#logModal') && !e.target.closest('.modal-content')) {
     $('logModal').classList.add('hidden'); $('logModal').classList.remove('flex');
   }
-  if (e.target.closest('#fullPlayerOverlay') && !e.target.closest('.full-player-content')) {
-    closeFullPlayer();
-  }
 });
 document.querySelectorAll('#logModal .modal-close').forEach(b => {
   b.addEventListener('click', () => { $('logModal').classList.add('hidden'); $('logModal').classList.remove('flex'); });
