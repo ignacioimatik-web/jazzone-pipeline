@@ -35,16 +35,28 @@ function initPlayerEngine() {
   audio.addEventListener('ended', onTrackEnd);
   audio.addEventListener('timeupdate', onTimeUpdate);
   audio.addEventListener('loadedmetadata', onLoadedMetadata);
-  audio.addEventListener('play', () => { player.isPlaying = true; updatePlayerUI(); });
-  audio.addEventListener('pause', () => { player.isPlaying = false; updatePlayerUI(); });
+  audio.addEventListener('play', () => { player.isPlaying = true; updatePlayerUI(); startVisualizer(); });
+  audio.addEventListener('pause', () => { player.isPlaying = false; updatePlayerUI(); stopVisualizer(); });
 
   // Mini player click → open full player
-  const mp = $('miniPlayer');
-  if (mp) {
-    mp.addEventListener('click', (e) => {
-      if (!e.target.closest('.no-click')) toggleFullPlayer();
+  const mpInner = $('miniPlayerInner');
+  if (mpInner) {
+    mpInner.addEventListener('click', (e) => {
+      if (player.album) toggleFullPlayer();
     });
   }
+
+  // Init audio context for visualizer on first user interaction
+  let vizInitialized = false;
+  const initViz = () => {
+    if (!vizInitialized) {
+      initVisualizer();
+      vizInitialized = true;
+    }
+  };
+  document.addEventListener('click', initViz, { once: true });
+  document.addEventListener('touchstart', initViz, { once: true });
+  document.addEventListener('keydown', initViz, { once: true });
 }
 
 function playAlbum(encodedName) {
@@ -127,6 +139,92 @@ function prevTrack() {
 function seekTrack(seconds) {
   const audio = $('audioPlayer');
   if (audio && audio.duration) audio.currentTime = Math.max(0, Math.min(audio.duration, seconds));
+}
+
+// ============ CANVAS VISUALIZER ============
+let vizCtx = null;
+let vizSource = null;
+let vizAnalyser = null;
+let vizAnimId = null;
+let vizCanvas = null;
+
+function initVisualizer() {
+  const audio = $('audioPlayer');
+  if (!audio) return;
+  try {
+    vizCtx = new (window.AudioContext || window.webkitAudioContext)();
+    vizSource = vizCtx.createMediaElementSource(audio);
+    vizAnalyser = vizCtx.createAnalyser();
+    vizAnalyser.fftSize = 256;
+    vizSource.connect(vizAnalyser);
+    vizAnalyser.connect(vizCtx.destination);
+  } catch(e) { /* audio context may already exist */ }
+}
+
+function startVisualizer() {
+  const canvas = $('fpVisualizer');
+  if (!canvas) return;
+  vizCanvas = canvas;
+  // Resume context if suspended (autoplay policy)
+  if (vizCtx && vizCtx.state === 'suspended') vizCtx.resume();
+  if (!vizAnalyser) return;
+  if (vizAnimId) return; // already running
+  drawViz();
+}
+
+function stopVisualizer() {
+  if (vizAnimId) { cancelAnimationFrame(vizAnimId); vizAnimId = null; }
+  // Clear canvas
+  const canvas = $('fpVisualizer');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
+function drawViz() {
+  const canvas = vizCanvas;
+  if (!canvas || !vizAnalyser) { vizAnimId = null; return; }
+  
+  // Size canvas to match display
+  if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+  }
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) { vizAnimId = null; return; }
+  
+  const bufferLength = vizAnalyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  vizAnalyser.getByteFrequencyData(dataArray);
+
+  const w = canvas.width;
+  const h = canvas.height;
+  
+  ctx.clearRect(0, 0, w, h);
+  
+  // Draw frequency bars
+  const barCount = 48;
+  const barWidth = (w / barCount) * 0.8;
+  const gap = (w / barCount) * 0.2;
+  
+  for (let i = 0; i < barCount; i++) {
+    // Map to frequency bins (skip DC ~0)
+    const idx = Math.floor((i / barCount) * bufferLength * 0.6) + 2;
+    const val = dataArray[idx] || 0;
+    const barHeight = Math.max(1, (val / 255) * h);
+    
+    const x = i * (barWidth + gap);
+    const y = h - barHeight;
+    
+    // Gradient from purple to teal
+    const t = i / barCount;
+    ctx.fillStyle = `rgba(${Math.floor(168 + t * -40)}, ${Math.floor(139 + t * 100)}, ${Math.floor(250 - t * 50)}, 0.7)`;
+    ctx.fillRect(x, y, barWidth, barHeight);
+  }
+  
+  vizAnimId = requestAnimationFrame(drawViz);
 }
 
 function onTimeUpdate() {
