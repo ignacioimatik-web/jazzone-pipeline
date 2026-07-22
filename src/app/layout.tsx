@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         {/* Tailwind CSS CDN + custom config (needed by original HTML) */}
-        <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" />
+        <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" async />
         <script
           dangerouslySetInnerHTML={{
             __html: `

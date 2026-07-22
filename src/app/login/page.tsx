@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, FormEvent, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 function LoginForm() {
   const [password, setPassword] = useState("");
@@ -10,7 +10,6 @@ function LoginForm() {
   const [attempts, setAttempts] = useState(0);
   const [blocked, setBlocked] = useState(false);
   const [blockTimer, setBlockTimer] = useState(0);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Comprobar si hay bloqueo activo
@@ -19,6 +18,7 @@ function LoginForm() {
     if (blockedUntil) {
       const remaining = parseInt(blockedUntil) - Date.now();
       if (remaining > 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setBlocked(true);
         setBlockTimer(Math.ceil(remaining / 1000));
         const interval = setInterval(() => {
