@@ -5,6 +5,7 @@
 const API = window.location.origin;
 let currentView = 'library';
 let libraryCache = null;
+let currentSort = 'latest'; // 'latest' = newest first, 'default' = original order
 let pollingJobs = {};
 let currentLibraryQuery = '';
 let currentLibraryFilter = 'all';
@@ -67,32 +68,36 @@ function renderLibrary(albums) {
   const grid = $('libraryGrid');
   if (!grid) return;
   if (!albums || albums.length === 0) {
-    grid.innerHTML = `<div class="col-span-full text-center py-16 text-on-surface-variant"><span class="material-symbols-outlined text-6xl opacity-30">library_music</span><p class="mt-4">Your library is empty</p></div>`;
+    grid.innerHTML = '<div class="col-span-full flex flex-col items-center justify-center py-20"><svg class="w-12 h-12 text-white/10 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg><p class="text-sm text-white/30">Your library is empty</p></div>';
     return;
   }
-  grid.innerHTML = albums.map(a => {
+
+  // Sort: latest added first (reverse order = most recent albums at end of array = newest first when reversed)
+  const sorted = [...albums];
+  if (currentSort === 'latest') {
+    sorted.reverse();
+  }
+
+  grid.innerHTML = sorted.map(a => {
     const encodedName = encodeSegment(a.name);
     const displayName = escapeHtml(a.name);
-    return `
-    <div class="glass-card rounded-xl overflow-hidden group cursor-pointer" onclick="openAlbum('${encodedName}')">
-      <div class="aspect-square relative overflow-hidden">
-        <img class="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
-          src="${a.cover || ''}" alt="${displayName}" loading="lazy"
-          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><rect fill=%22%23222%22 width=%22200%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 font-size=%2260%22>🎵</text></svg>'">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-          <button class="bg-primary-container text-on-primary-container w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform" onclick="event.stopPropagation();openAlbum('${encodedName}')">
-            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">play_arrow</span>
-          </button>
-        </div>
-      </div>
-      <div class="p-stack-md">
-        <h3 class="font-title-md text-title-md truncate text-on-surface">${displayName}</h3>
-        <div class="flex items-center justify-between mt-1">
-          <span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">${a.track_count} Tracks</span>
-          <span class="material-symbols-outlined text-secondary-fixed-dim text-sm" style="font-variation-settings:'FILL' 1">check_circle</span>
-        </div>
-      </div>
-    </div>`;
+    return '<div class="group relative w-full overflow-hidden rounded-xl bg-[rgba(255,255,255,0.03)] backdrop-blur-[12px] border border-[rgba(255,255,255,0.08)] p-3 text-left transition-all duration-[0.4s] ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-[rgba(255,255,255,0.07)] hover:border-[rgba(168,85,247,0.4)] hover:-translate-y-2 hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.3)] cursor-pointer" onclick="openAlbum(\'' + encodedName + '\')">' +
+      '<div class="relative mb-3 aspect-square w-full overflow-hidden rounded-lg">' +
+        '<img class="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700" src="' + (a.cover || '') + '" alt="' + displayName + '" loading="lazy" onerror="this.style.display=\'none\';this.parentElement.className+=\' flex items-center justify-center bg-[#222] text-5xl\';this.parentElement.textContent=\'🎵\'">' +
+        '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">' +
+          '<div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-600 shadow-lg flex items-center justify-center hover:scale-110 transition-transform">' +
+            '<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="px-1">' +
+        '<h3 class="text-sm font-semibold truncate text-white/80 leading-tight">' + displayName + '</h3>' +
+        '<div class="flex items-center justify-between mt-1">' +
+          '<span class="text-[10px] font-semibold text-white/40 uppercase tracking-wider">' + a.track_count + ' Tracks</span>' +
+          '<svg class="w-3.5 h-3.5 text-emerald-400/60" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
   }).join('');
 }
 
@@ -113,6 +118,7 @@ function matchesLibraryFilter(album, filter) {
   if (filter === 'acid-jazz') return /acid|jazz|funk|soul/.test(name);
   if (filter === 'concerts') return /live|concert|festival|tour|session|koko|cercle/.test(name);
   if (filter === 'instrumental') return /instrumental|piano|guitar|solo|ambient|classical/.test(name);
+  if (filter === 'podcast') return /radio drama|audiobook|read along|homil[aí]|story|talk|speech|interview|podcast|star.?wars.*(radio|drama|audio|book)|narra|history|documentary|meditaci[oó]n|sermon|lecture/.test(name);
   return true;
 }
 
@@ -120,10 +126,13 @@ function setLibraryFilter(filter, button) {
   currentLibraryFilter = filter;
   document.querySelectorAll('.library-filter').forEach(item => {
     const active = item === button;
-    item.classList.toggle('bg-primary-container', active);
-    item.classList.toggle('text-on-primary-container', active);
-    item.classList.toggle('text-on-surface-variant', !active);
-    item.classList.toggle('bg-surface-glass', !active);
+    if (active) {
+      item.className = item.className.replace(/bg-white\/5|border-white\/10|text-white\/40/g, '');
+      item.classList.add('bg-purple-500/20', 'text-purple-300', 'border-purple-500/20');
+    } else {
+      item.classList.remove('bg-purple-500/20', 'text-purple-300', 'border-purple-500/20');
+      item.classList.add('bg-white/5', 'text-white/40', 'border-white/10');
+    }
   });
   filterLibrary(currentLibraryQuery);
 }

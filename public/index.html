@@ -115,6 +115,9 @@
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-2xl font-bold text-white/90 tracking-tight">Biblioteca</h2>
       <div class="flex items-center gap-2">
+        <button onclick="if(window.currentSort==='latest'){window.currentSort='default';this.querySelector('span').textContent='Ord.'}else{window.currentSort='latest';this.querySelector('span').textContent='Nuevos'};loadLibrary()" class="text-[10px] font-semibold uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all" style="background:rgba(168,85,247,0.15);color:rgba(168,85,247,0.7);border:1px solid rgba(168,85,247,0.2)">
+          <span>Nuevos</span>
+        </button>
         <button onclick="cleanupStale()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 transition-all duration-300" title="Limpiar fantasmas">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
         </button>
@@ -130,6 +133,7 @@
       <button class="library-filter px-4 py-2 rounded-xl text-xs font-semibold transition-all bg-white/5 text-white/40 border border-white/10 hover:bg-white/10 hover:text-white/60" data-filter="acid-jazz" onclick="setLibraryFilter('acid-jazz', this)">Acid Jazz</button>
       <button class="library-filter px-4 py-2 rounded-xl text-xs font-semibold transition-all bg-white/5 text-white/40 border border-white/10 hover:bg-white/10 hover:text-white/60" data-filter="concerts" onclick="setLibraryFilter('concerts', this)">Concerts</button>
       <button class="library-filter px-4 py-2 rounded-xl text-xs font-semibold transition-all bg-white/5 text-white/40 border border-white/10 hover:bg-white/10 hover:text-white/60" data-filter="instrumental" onclick="setLibraryFilter('instrumental', this)">Instrumental</button>
+      <button class="library-filter px-4 py-2 rounded-xl text-xs font-semibold transition-all bg-white/5 text-white/40 border border-white/10 hover:bg-white/10 hover:text-white/60" data-filter="podcast" onclick="setLibraryFilter('podcast', this)">Podcast</button>
     </div>
 
     <!-- Albums Grid -->
