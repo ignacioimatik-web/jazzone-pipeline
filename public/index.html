@@ -491,11 +491,10 @@
       </button>
     </div>
 
-    <!-- Album Art + Visualizer -->
-    <div id="fpArtContainer" style="position:relative;width:100%;aspect-ratio:1;max-width:320px;margin:0 auto 12px;border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(168,85,247,0.2);flex-shrink:0">
-      <img id="fpAlbumArt" src="" alt="Album art" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"
+    <!-- Album Art (sin visualizer) -->
+    <div style="position:relative;width:100%;aspect-ratio:1;max-width:320px;margin:0 auto 12px;border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(168,85,247,0.2);flex-shrink:0">
+      <img id="fpAlbumArt" src="" alt="Album art" style="width:100%;height:100%;object-fit:cover"
         onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'><rect fill=\'%23222\' width=\'200\' height=\'200\'/><text x=\'50%\' y=\'50%\' text-anchor=\'middle\' font-size=\'60\'>🎵</text></svg>'">
-      <canvas id="fpVisualizer" style="position:absolute;bottom:0;left:0;right:0;height:35%;width:100%;pointer-events:none;opacity:0.75"></canvas>
     </div>
 
     <!-- Track Info -->
@@ -524,6 +523,11 @@
       <button onclick="nextTrack()" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">
         <svg width="22" height="22" fill="currentColor" viewBox="0 0 20 20"><path d="M13.296 4.711a.75.75 0 00-.78.062 3.236 3.236 0 01-1.266.785A3.25 3.25 0 0010 5.75c-.78 0-1.5.22-2.11.59a.75.75 0 00-.28.316l-4.406 10.555a.75.75 0 00.375.97.75.75 0 00.541.053 7.73 7.73 0 015.88 0 .75.75 0 00.54-.053.75.75 0 00.376-.97l-2.784-6.668A1.5 1.5 0 0010 9.25c.476 0 .936.092 1.36.273a3.25 3.25 0 011.266.785.75.75 0 00.78.063.75.75 0 00.468-.574l.37-2.087c.057-.207.088-.42.088-.635 0-.435-.09-.87-.256-1.265a.75.75 0 00-.78-.404z"/><path d="M15.97 5.273a.75.75 0 00-1.025.275c-.21.365-.506.647-.86.82a3.25 3.25 0 01-1.266.785c-.3.103-.621.16-.944.169v1.948a1.5 1.5 0 01.715 1.572l-2.785 6.668a.75.75 0 00.917 1.027 9.23 9.23 0 012.56-.666l.178-.09a.75.75 0 00.374-.52.75.75 0 00-.17-.62 3.236 3.236 0 00-.796-.712.75.75 0 00-.574-.093.75.75 0 00-.435.342l-.62.373a7.74 7.74 0 01-2.828.89l-.036-.088.348-.832A.75.75 0 009 11.25V8.764c.19-.029.376-.076.56-.14a4.75 4.75 0 001.85-1.145.75.75 0 00.44-.646l.043-.341A.75.75 0 0011.5 6.25h1.5a.75.75 0 00.432-.14.75.75 0 00.294-.574l.036-.36a.75.75 0 00-.792-.803z"/></svg>
       </button>
+    </div>
+
+    <!-- Visualizer entre controles y playlist -->
+    <div style="flex-shrink:0;height:48px;margin:4px 0 4px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.02)">
+      <canvas id="fpVisualizer" style="width:100%;height:100%;opacity:0.6"></canvas>
     </div>
 
     <!-- Equalizer (collapsible) -->
