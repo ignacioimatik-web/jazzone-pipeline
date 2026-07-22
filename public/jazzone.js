@@ -101,10 +101,16 @@ function playCurrentTrack() {
   player.isPlaying = true;
   audio.play().catch(() => { player.isPlaying = false; });
 
-  const trackName = decodeURIComponent(track).replace('.m4a','');
   const albumName = decodeURIComponent(player.album);
+  const meta = getAlbumMeta(player.album);
+  const displayAlbum = meta.albumName || albumName;
+  const displayArtist = meta.artist || '';
+  const displayYear = meta.year || '';
+  const trackName = meta.tracks?.[player.currentIndex]?.title || decodeURIComponent(track).replace('.m4a','');
+  const albumNameFull = displayYear ? `${displayAlbum} (${displayYear})` : displayAlbum;
+
   $('playerTrackName').textContent = trackName;
-  $('playerAlbumName').textContent = albumName;
+  $('playerAlbumName').textContent = displayArtist ? `${displayArtist} · ${albumNameFull}` : albumNameFull;
 
   // Mini player art
   const miniArt = $('miniAlbumArt');
@@ -335,6 +341,122 @@ function downloadAllAlbumFromPlayer() {
   if (player.album) downloadAllAlbum(player.album);
 }
 
+// ============ METADATA EDITOR ============
+let metaOverrides = {};
+
+function loadMetaOverrides() {
+  try { metaOverrides = JSON.parse(localStorage.getItem('jazzone_meta') || '{}'); } catch(e) {}
+}
+
+function saveMetaOverrides() {
+  localStorage.setItem('jazzone_meta', JSON.stringify(metaOverrides));
+}
+
+function getAlbumMeta(albumName) {
+  const key = albumName || '';
+  return metaOverrides[key] || {};
+}
+
+function setAlbumMeta(albumName, data) {
+  const key = albumName || '';
+  metaOverrides[key] = { ...(metaOverrides[key] || {}), ...data };
+  saveMetaOverrides();
+}
+
+function applyMetaToDisplay(name, tracks) {
+  const meta = getAlbumMeta(name);
+  const displayName = meta.albumName || name;
+  const displayTracks = tracks.map((t, i) => {
+    const override = meta.tracks?.[i];
+    return override?.title ? override.title : t;
+  });
+  return { displayName, displayTracks, artist: meta.artist || '', year: meta.year || '', genre: meta.genre || '' };
+}
+
+function editMetadata() {
+  const name = decodeURIComponent(player.album);
+  if (!name) { showToast('No album selected'); return; }
+  const meta = getAlbumMeta(player.album);
+  const trackNames = player.tracks.map(t => {
+    const override = meta.tracks?.find((_, i) => player.tracks[i] === t);
+    return override?.title || t.replace('.m4a', '');
+  });
+  
+  // Build edit modal
+  const modal = $('editMetaModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  
+  $('editMetaContent').innerHTML = `
+    <div style="margin-bottom:16px">
+      <label style="display:block;font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Álbum</label>
+      <input id="metaAlbum" value="${escapeHtml(meta.albumName || name)}" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,0.8);outline:none;box-sizing:border-box;font-family:inherit">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <div style="flex:1">
+        <label style="display:block;font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Artista</label>
+        <input id="metaArtist" value="${escapeHtml(meta.artist || '')}" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,0.8);outline:none;box-sizing:border-box;font-family:inherit">
+      </div>
+      <div style="flex:0 0 80px">
+        <label style="display:block;font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Año</label>
+        <input id="metaYear" value="${escapeHtml(meta.year || '')}" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,0.8);outline:none;box-sizing:border-box;font-family:inherit">
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="display:block;font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Género</label>
+      <input id="metaGenre" value="${escapeHtml(meta.genre || '')}" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,0.8);outline:none;box-sizing:border-box;font-family:inherit">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block;font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Tracks (uno por línea)</label>
+      <textarea id="metaTracks" rows="${Math.min(trackNames.length, 15)}" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;font-size:12px;color:rgba(255,255,255,0.8);outline:none;box-sizing:border-box;font-family:inherit;resize:vertical">${trackNames.map(escapeHtml).join('\n')}</textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="saveMetadata()" style="flex:1;padding:10px;border-radius:10px;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Guardar</button>
+      <button onclick="closeEditMeta()" style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);font-size:13px;cursor:pointer;font-family:inherit">Cancelar</button>
+    </div>
+  `;
+}
+
+function saveMetadata() {
+  const name = decodeURIComponent(player.album);
+  const newAlbumName = $('metaAlbum')?.value?.trim() || name;
+  const artist = $('metaArtist')?.value?.trim() || '';
+  const year = $('metaYear')?.value?.trim() || '';
+  const genre = $('metaGenre')?.value?.trim() || '';
+  const tracksText = $('metaTracks')?.value || '';
+  const trackTitles = tracksText.split('\n').map(s => s.trim()).filter(Boolean);
+  
+  const tracks = trackTitles.map((title, i) => ({
+    title,
+    originalFile: player.tracks[i] || `Track ${i+1}`
+  }));
+  
+  setAlbumMeta(player.album, {
+    albumName: newAlbumName,
+    artist,
+    year,
+    genre,
+    tracks
+  });
+  
+  closeEditMeta();
+  showToast('✅ Metadatos guardados');
+  // Refresh display
+  if (!document.getElementById('fullPlayerOverlay').classList.contains('hidden')) {
+    updateFullPlayerInfo();
+  }
+  renderLibrary(libraryCache);
+}
+
+function closeEditMeta() {
+  const modal = $('editMetaModal');
+  if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+}
+
+// Load overrides on boot
+loadMetaOverrides();
+
 function onTimeUpdate() {
   const audio = $('audioPlayer');
   if (!audio || !audio.duration) return;
@@ -399,8 +521,17 @@ function updatePlayerUI() {
 function updateFullPlayerInfo() {
   if (player.currentIndex < 0 || !player.tracks.length) return;
   const track = player.tracks[player.currentIndex];
-  const trackName = decodeURIComponent(track).replace('.m4a','');
   const albumName = decodeURIComponent(player.album);
+  
+  // Apply metadata overrides
+  const meta = getAlbumMeta(player.album);
+  const displayAlbum = meta.albumName || albumName;
+  const displayArtist = meta.artist || '';
+  const displayYear = meta.year || '';
+  const displayGenre = meta.genre || '';
+  
+  const trackName = meta.tracks?.[player.currentIndex]?.title || decodeURIComponent(track).replace('.m4a','');
+  const albumNameFull = displayYear ? `${displayAlbum} (${displayYear})` : displayAlbum;
 
   const img = $('fpAlbumArt');
   if (img) {
@@ -408,11 +539,11 @@ function updateFullPlayerInfo() {
     img.onerror = function(){ this.src='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="%23222" width="200" height="200"/><text x="50%" y="50%" text-anchor="middle" font-size="60">🎵</text></svg>'; };
   }
   $('fpTrackName').textContent = trackName;
-  $('fpAlbumName').textContent = albumName;
+  $('fpAlbumName').textContent = displayArtist ? `${displayArtist} · ${albumNameFull}` : albumNameFull;
   $('fpTrackCount').textContent = `${player.currentIndex + 1} of ${player.tracks.length}`;
   $('fpTrackCountSmall').textContent = `${player.tracks.length} tracks`;
   $('fpTrackList').innerHTML = player.tracks.map((t,i) => {
-    const n = decodeURIComponent(t).replace('.m4a','');
+    const n = meta.tracks?.[i]?.title || decodeURIComponent(t).replace('.m4a','');
     const cur = i === player.currentIndex;
     return `<div class="fp-track ${cur?'fp-track-current':''}" onclick="playAlbumTrackAt(${i})">
       <span class="fp-track-num">${cur
