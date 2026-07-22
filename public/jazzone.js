@@ -974,7 +974,7 @@ async function updateStats() {
 }
 
 // ============ INIT ============
-document.addEventListener('DOMContentLoaded', () => {
+function bootApp() {
   initPlayerEngine();
   loadLibrary();
   updateStats();
@@ -994,4 +994,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT') { e.preventDefault(); nextTrack(); }
     if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT') { e.preventDefault(); prevTrack(); }
   });
-});
+}
+
+// Boot immediately (DOM is already loaded when jazzone.js loads dynamically)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootApp);
+} else {
+  bootApp();
+}
