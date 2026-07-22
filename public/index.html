@@ -515,18 +515,19 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7"/></svg>
       </button>
       <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3)" id="fpTrackCount">— of —</span>
-      <button onclick="downloadAllAlbumFromPlayer()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;transition:all 0.2s" title="Download ZIP">
+      <button onclick="toggleEQ()" id="eqToggleBtn" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;transition:all 0.2s" title="Equalizer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 6.5h-6M10 6.5H2M22 12h-8M8 12H2M22 17.5h-4M12 17.5H2"/><circle cx="16" cy="6.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="14" cy="17.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <button onclick="downloadAllAlbumFromPlayer()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer" title="Download ZIP">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
       </button>
     </div>
 
     <!-- Album Art + Visualizer -->
-    <div id="fpArtContainer" style="position:relative;width:100%;aspect-ratio:1;max-width:320px;margin:0 auto 12px;border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(168,85,247,0.2);flex-shrink:0;cursor:pointer" onclick="toggleEQ()">
+    <div id="fpArtContainer" style="position:relative;width:100%;aspect-ratio:1;max-width:320px;margin:0 auto 12px;border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(168,85,247,0.2);flex-shrink:0">
       <img id="fpAlbumArt" src="" alt="Album art" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"
         onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'><rect fill=\'%23222\' width=\'200\' height=\'200\'/><text x=\'50%\' y=\'50%\' text-anchor=\'middle\' font-size=\'60\'>🎵</text></svg>'">
       <canvas id="fpVisualizer" style="position:absolute;bottom:0;left:0;right:0;height:35%;width:100%;pointer-events:none;opacity:0.75"></canvas>
-      <!-- EQ toggle hint -->
-      <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);border-radius:8px;padding:4px 8px;font-size:9px;color:rgba(255,255,255,0.5);pointer-events:none">EQ</div>
     </div>
 
     <!-- Track Info -->

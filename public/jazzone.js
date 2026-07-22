@@ -229,21 +229,22 @@ function drawViz() {
 
 // ============ EQUALIZER ============
 let eqFilters = [];
+let eqOpen = false;
 const EQ_FREQS = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 
 function initEQ() {
   const audio = $('audioPlayer');
   if (!audio) return;
+  
+  // Build sliders UI regardless of AudioContext availability
+  buildEQSliders([]);
+  
   try {
-    // Create AudioContext and connect filters between source and analyser
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const source = ctx.createMediaElementSource(audio);
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 256;
     
-    // Connect: source → eqFilters → analyser → destination
     let lastNode = source;
-    eqFilters = EQ_FREQS.map(freq => {
+    const filters = EQ_FREQS.map(freq => {
       const filter = ctx.createBiquadFilter();
       filter.type = 'peaking';
       filter.frequency.value = freq;
@@ -253,30 +254,48 @@ function initEQ() {
       lastNode = filter;
       return filter;
     });
+    
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
     lastNode.connect(analyser);
     analyser.connect(ctx.destination);
     
-    // Store for visualizer
+    eqFilters = filters;
     vizCtx = ctx;
     vizAnalyser = analyser;
     
-    // Build EQ sliders UI
-    buildEQSliders();
-  } catch(e) { /* audio context error */ }
+    // Rebuild sliders with actual filter values
+    buildEQSliders(filters);
+  } catch(e) {
+    // Visualizer fallback: create a separate audio-only analyser path
+    console.warn('EQ init failed, visualizer may not work:', e.message);
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      const src = ctx.createMediaElementSource(audio);
+      src.connect(analyser);
+      analyser.connect(ctx.destination);
+      vizCtx = ctx;
+      vizAnalyser = analyser;
+    } catch(e2) {
+      console.warn('Visualizer fallback also failed');
+    }
+  }
 }
 
-function buildEQSliders() {
+function buildEQSliders(filters) {
   const container = $('eqSliders');
   if (!container) return;
   container.innerHTML = EQ_FREQS.map((freq, i) => {
-    const db = eqFilters[i]?.gain?.value || 0;
+    const db = filters[i]?.gain?.value || 0;
     const pct = ((db + 12) / 24) * 100;
     return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;position:relative">
       <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;background:rgba(255,255,255,0.06);height:100%;border-radius:2px"></div>
       <div id="eqFill${i}" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;background:linear-gradient(to top,#a78bfa,#e879f9);border-radius:2px;height:${pct}%;transition:height 0.1s"></div>
       <input type="range" min="-12" max="12" value="${db}" step="0.5" orient="vertical"
         oninput="updateEQ(${i}, this.value)"
-        style="position:absolute;bottom:0;left:0;right:0;height:100%;width:100%;writing-mode:vertical-lr;direction:rtl;appearance:slider-vertical;-webkit-appearance:slider-vertical;margin:0;padding:0;opacity:0.6;cursor:pointer;z-index:2">
+        style="position:absolute;bottom:0;left:0;right:0;height:100%;width:100%;writing-mode:vertical-lr;direction:rtl;-webkit-appearance:slider-vertical;margin:0;padding:0;opacity:0.6;cursor:pointer;z-index:2;background:transparent;accent-color:#a78bfa">
       <span id="eqVal${i}" style="position:absolute;top:-2px;font-size:7px;color:rgba(212,192,215,0.4);z-index:1">${db >= 0 ? '+' : ''}${db}</span>
     </div>`;
   }).join('');
@@ -298,16 +317,18 @@ function resetEQ() {
     if (fill) fill.style.height = '50%';
     const val = $(`eqVal${i}`);
     if (val) val.textContent = '+0';
-    const slider = document.querySelector(`#eqSliders input:nth-child(${i * 3 + 2})`);
-    if (slider) slider.value = '0';
+    const input = document.querySelector(`#eqSliders input:nth-child(${i + 1})`);
+    if (input) input.value = '0';
   });
 }
 
-let eqOpen = false;
 function toggleEQ() {
   eqOpen = !eqOpen;
   const sec = $('eqSection');
   if (sec) sec.style.maxHeight = eqOpen ? '120px' : '0';
+  // Highlight button
+  const btn = $('eqToggleBtn');
+  if (btn) btn.style.color = eqOpen ? 'rgba(168,85,247,0.8)' : 'rgba(255,255,255,0.4)';
 }
 
 function downloadAllAlbumFromPlayer() {
