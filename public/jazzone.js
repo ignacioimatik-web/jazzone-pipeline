@@ -1126,10 +1126,16 @@ async function openAlbum(encodedName) {
     if (!data.tracks || data.tracks.length === 0) { showToast('No tracks'); return; }
     
     // Set player state
+    const prevAlbum = player.album;
     player.album = encodedName;
     player.albumCover = album?.cover || '';
     player.tracks = data.tracks;
-    player.currentIndex = player.currentIndex >= 0 ? player.currentIndex : 0;
+    // If opening a different album, don't highlight any track
+    if (prevAlbum && prevAlbum !== encodedName) {
+      player.currentIndex = -1;
+    } else {
+      player.currentIndex = player.currentIndex >= 0 ? player.currentIndex : 0;
+    }
     
     // Update full player UI
     updateFullPlayerInfo();
