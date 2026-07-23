@@ -969,7 +969,8 @@ function renderLibrary(albums) {
 
   grid.innerHTML = sorted.map(a => {
     const encodedName = encodeSegment(a.name);
-    const displayName = escapeHtml(a.name);
+    const meta = getAlbumMeta(encodedName);
+    const displayName = escapeHtml(meta.albumName || a.name);
     const isThisAlbum = player.album && decodeURIComponent(player.album) === a.name && player.tracks.length > 0;
     return '<div class="group relative w-full overflow-hidden rounded-xl bg-[rgba(255,255,255,0.03)] backdrop-blur-[12px] border ' + (isThisAlbum ? 'border-purple-500/40' : 'border-[rgba(255,255,255,0.08)]') + ' p-3 text-left transition-all duration-[0.4s] ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-[rgba(255,255,255,0.07)] hover:border-[rgba(168,85,247,0.4)] hover:-translate-y-2 hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.3)] cursor-pointer" onclick="openAlbum(\'' + encodedName + '\')">' +
       '<div class="relative mb-3 aspect-square w-full overflow-hidden rounded-lg">' +
