@@ -74,6 +74,7 @@ function playAlbum(encodedName) {
     audio.play().catch(() => {});
     return;
   }
+  recordPlay(encodedName);
   playAlbumTracks(encodedName, 0);
 }
 
@@ -964,8 +965,7 @@ function renderLibrary(albums) {
     return;
   }
 
-  const sorted = [...albums];
-  if (currentSort === 'latest') sorted.reverse();
+  const sorted = sortAlbums([...albums], currentSort);
 
   grid.innerHTML = sorted.map(a => {
     const encodedName = encodeSegment(a.name);
@@ -994,6 +994,81 @@ function renderLibrary(albums) {
     '</div>';
   }).join('');
 }
+
+// ============ SORT SYSTEM ============
+const SORT_OPTIONS = [
+  { id: 'latest', label: 'Nuevos', icon: '↓' },
+  { id: 'oldest', label: 'Antiguos', icon: '↑' },
+  { id: 'name-asc', label: 'A-Z', icon: 'A→Z' },
+  { id: 'name-desc', label: 'Z-A', icon: 'Z→A' },
+  { id: 'tracks-desc', label: '+ Tracks', icon: '##' },
+  { id: 'tracks-asc', label: '- Tracks', icon: '#↓' },
+  { id: 'played', label: '+ Oídos', icon: '▶' },
+];
+
+function sortAlbums(albums, sortId) {
+  const plays = getPlays();
+  switch (sortId) {
+    case 'latest': return albums.reverse();
+    case 'oldest': return albums;
+    case 'name-asc': return albums.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    case 'name-desc': return albums.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+    case 'tracks-desc': return albums.sort((a, b) => (b.track_count || 0) - (a.track_count || 0));
+    case 'tracks-asc': return albums.sort((a, b) => (a.track_count || 0) - (b.track_count || 0));
+    case 'played': return albums.sort((a, b) => (plays[b.name] || 0) - (plays[a.name] || 0));
+    default: return albums;
+  }
+}
+
+function toggleSortMenu() {
+  const existing = $('sortDropdown');
+  if (existing) { existing.remove(); return; }
+  const menu = document.createElement('div');
+  menu.id = 'sortDropdown';
+  menu.style.cssText = 'position:absolute;top:100%;right:0;margin-top:4px;background:#1a1a24;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:4px;z-index:100;min-width:150px;box-shadow:0 16px 48px rgba(0,0,0,0.5)';
+  menu.innerHTML = SORT_OPTIONS.map(opt =>
+    `<div onclick="setSort('${opt.id}')" style="padding:8px 12px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:8px;transition:all 0.15s;${currentSort === opt.id ? 'background:rgba(168,85,247,0.2);color:rgba(168,85,247,0.9)' : 'color:rgba(255,255,255,0.6);hover:background:rgba(255,255,255,0.05)'}"
+      onmouseenter="this.style.background='rgba(255,255,255,0.05)'" onmouseleave="this.style.background='${currentSort === opt.id ? 'rgba(168,85,247,0.2)' : 'transparent'}'">
+      <span style="width:28px;text-align:center;font-size:10px;opacity:0.5">${opt.icon}</span>
+      <span>${opt.label}</span>
+      ${currentSort === opt.id ? '<span style="margin-left:auto;color:rgba(168,85,247,0.6)">✓</span>' : ''}
+    </div>`
+  ).join('');
+  $('sortContainer').appendChild(menu);
+  
+  // Close on click outside
+  setTimeout(() => {
+    document.addEventListener('click', closeSortMenu, { once: true });
+  }, 10);
+}
+
+function closeSortMenu(e) {
+  if (e && e.target && (e.target.closest('#sortDropdown') || e.target.closest('#sortBtn'))) return;
+  const dd = $('sortDropdown');
+  if (dd) dd.remove();
+}
+
+function setSort(id) {
+  currentSort = id;
+  const label = SORT_OPTIONS.find(o => o.id === id)?.label || 'Ord.';
+  $('sortLabel').textContent = label;
+  const dd = $('sortDropdown');
+  if (dd) dd.remove();
+  loadLibrary();
+}
+
+// Track plays in localStorage
+let playCounts = {};
+function loadPlays() {
+  try { playCounts = JSON.parse(localStorage.getItem('jazzone_plays') || '{}'); } catch(e) {}
+}
+function getPlays() { return playCounts; }
+function recordPlay(albumName) {
+  if (!albumName) return;
+  playCounts[albumName] = (playCounts[albumName] || 0) + 1;
+  localStorage.setItem('jazzone_plays', JSON.stringify(playCounts));
+}
+loadPlays();
 
 // ============ SEARCH ============
 function filterLibrary(query) {
@@ -1201,14 +1276,6 @@ document.addEventListener('click', (e) => {
     const m = e.target.closest('.modal-overlay');
     if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
   }
-});
-
-// ============ NAVIGATION / SORT ============
-document.querySelectorAll('[data-sort]').forEach(b => {
-  b.addEventListener('click', () => {
-    currentSort = b.dataset.sort;
-    loadLibrary();
-  });
 });
 
 // ============ MANAGE VIEW ============
